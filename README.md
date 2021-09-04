@@ -28,7 +28,7 @@ Then you need to put something like this in your tsconfig.json:
 		}
 	}
 
-That is, you use this transformer as typical transformer in [ttypescript](https://www.npmjs.com/package/ttypescript) sense. It is mainly intended to use with [Imploder](https://github.com/nartallax/imploder) (but will probably work fine with ttypescript).
+That is, you use this transformer as typical transformer in [ttypescript](https://www.npmjs.com/package/ttypescript) sense. It is mainly intended to use with [Imploder](https://github.com/nartallax/imploder) (but will probably work fine with ttypescript).  
 Without any `tasks`, transformer won't do anything. With `tasks` you can tell the transformer exact things you want him to do. See below.  
 `"imploder"` type is preferred; `"program"` is possible but won't work as well (module deletion is not handled; file generation won't happen on compiler start and so on).  
 `ignoreModules` allows you to skip transformation of modules which names matches any of the regexps passed. Expected use-case is to ignore generated files, as you will probably never need to transform them.  
