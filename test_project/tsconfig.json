@@ -1,0 +1,78 @@
+{ 
+    "exclude": [
+        "./test_projects/*"
+    ],
+
+    "imploderConfig": {
+        "entryModule": "test_project_main.ts",
+        "entryFunction": "main",
+        "outFile": "js/bundle.js",
+        "target": "es2018"
+    },
+
+    "compilerOptions": {
+        "lib": [
+            "dom",
+            "es2018"
+        ],
+
+        "plugins": [
+            {
+                "transform": "../target/toolbox-transformer.js", 
+                "type":"imploder",
+                "ignoreModules": ["^/?generated"],
+                "tasks": [
+                    {"type":"collect_toplevel_calls", "returnTypeName": "ENUMERATE_THIS_RETURN_TYPE", "file": "generated/calls_enumeration.ts"},
+                    {"type":"collect_classes", "markerName": "THIS_IS_PAGE_I_NEED_THIS", "file": "generated/page_list.ts", "collectionType": "readonly_array", "collectionValueType": "{new(): Page}", "additionalImports": ["import {Page} from \"classes_enumeration/page\";"], "exportedName": "allThePages"},
+                    {"type":"collect_values", "markerName": "FLAG_SYMBOL_TO_COLLECT", "file": "generated/flag_list.ts", "collectionType": "readonly_set", "collectionValueType": "FlagSymbol", "additionalImports": ["import {FlagSymbol} from \"value_enumeration/flag_symbol\";"], "exportedName": "allFlags"},
+                    {"type":"pseudovariable", "markerName": "PACKAGE_VERSION_MARKER", "valueType": "json_file_value", "file": "./packagelike.json", "jsonPath": ["description", "version"]},
+                    {"type":"pseudovariable", "markerName": "MODULE_NAME_MARKER", "valueType": "module_name" },
+                    {"type":"remove_calls","markerName": "REMOVE_THIS_FUNCTION_CALL"}
+                ]
+            }
+        ],
+
+        "baseUrl": "./",
+        "paths": {
+            "*": [
+                "./*"
+            ]
+        },
+
+        "outDir": "js/main",
+
+        "allowJs": false,
+
+        "noErrorTruncation": true,
+        "downlevelIteration": true,
+        "skipLibCheck": true,
+        "moduleResolution": "Node",
+
+        "noImplicitUseStrict": false,
+        "alwaysStrict": true,
+        "newLine": "lf",
+        "noEmitOnError": true,
+        "pretty": false,
+        "removeComments": true,
+        "sourceMap": false,
+        "charset": "utf8",
+        "declaration": false,
+        "emitBOM": false,
+        
+        "module": "amd",
+        "target": "es2018",
+
+        "strict": true,
+        "allowUnreachableCode": false,
+        "allowUnusedLabels": false,
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitAny": false,
+        "noImplicitReturns": true,
+        "noImplicitThis": true,
+        "noStrictGenericChecks": false,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "strictFunctionTypes": true,
+        "strictNullChecks": true
+    }
+}

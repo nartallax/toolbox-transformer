@@ -1,0 +1,6 @@
+target
+js
+test_project/js
+test_project/generated
+ts/generated
+node_modules

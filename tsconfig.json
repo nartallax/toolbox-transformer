@@ -1,0 +1,80 @@
+{ 
+    "exclude": [
+        "./test_project/*"
+    ],
+
+    "imploderConfig": {
+        "target": "es2018",
+        "moduleBlacklistRegexp": ["^(?:/ts)?/?tests/.*?$", "^/?test_project/.*?$"],
+        "profiles": {
+            "release": {
+                "entryModule": "ts/src/entrypoint.ts",
+                "outFile": "target/toolbox-transformer.js"
+            },
+            "test": {
+                "entryModule": "ts/generated/test_entrypoint.ts",
+                "outFile": "target/test.js",
+                "moduleBlacklistRegexp": [],
+                "entryFunction": "testMain",
+                "plugins": [
+                    {
+                        "transform": "@nartallax/clamsensor",
+                        "type": "imploder",
+                        "generatedFilePath": "ts/generated/test_entrypoint.ts"
+                    }
+                ]
+            }
+        }
+    },
+
+    "compilerOptions": {
+        "moduleResolution": "Node",
+        "lib": [
+            "dom",
+            "es2018"
+        ],
+
+        "baseUrl": "./ts",
+        "paths": {
+            "*": [
+                "./src/*"
+            ],
+            "tests/*": [
+                "./tests/*"
+            ]
+        },
+
+        "allowJs": false,
+
+        "noErrorTruncation": true,
+        "downlevelIteration": true,
+        "skipLibCheck": true,
+
+        "noImplicitUseStrict": false,
+        "alwaysStrict": true,
+        "newLine": "lf",
+        "noEmitOnError": true,
+        "pretty": false,
+        "removeComments": true,
+        "sourceMap": false,
+        "charset": "utf8",
+        "declaration": false,
+        "emitBOM": false,
+        "outDir": "js/main",
+        "module": "amd",
+        "target": "es2018",
+
+        "strict": true,
+        "allowUnreachableCode": false,
+        "allowUnusedLabels": false,
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitAny": true,
+        "noImplicitReturns": true,
+        "noImplicitThis": true,
+        "noStrictGenericChecks": false,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "strictFunctionTypes": true,
+        "strictNullChecks": true
+    }
+}
