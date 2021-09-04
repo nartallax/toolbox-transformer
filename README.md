@@ -50,7 +50,7 @@ Use-case: you have a lot of function calls in different modules defining somethi
 Configuration (task):
 
 	{
-		"type":"enumerate_modules_with_toplevel_calls", 
+		"type":"collect_toplevel_calls", 
 		"returnTypeName": "ENUMERATE_THIS_RETURN_TYPE", 
 		"file": "generated/calls_enumeration.ts"
 	}
