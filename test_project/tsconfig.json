@@ -27,7 +27,8 @@
                     {"type":"collect_values", "markerName": "FLAG_SYMBOL_TO_COLLECT", "file": "generated/flag_list.ts", "collectionType": "readonly_set", "collectionValueType": "FlagSymbol", "additionalImports": ["import {FlagSymbol} from \"value_enumeration/flag_symbol\";"], "exportedName": "allFlags"},
                     {"type":"pseudovariable", "markerName": "PACKAGE_VERSION_MARKER", "valueType": "json_file_value", "file": "./packagelike.json", "jsonPath": ["description", "version"]},
                     {"type":"pseudovariable", "markerName": "MODULE_NAME_MARKER", "valueType": "module_name" },
-                    {"type":"remove_calls","markerName": "REMOVE_THIS_FUNCTION_CALL"}
+                    {"type":"remove_calls","markerName": "REMOVE_THIS_FUNCTION_CALL"},
+                    {"type":"pseudomethod","markerName": "PSEUDOMETHOD"}
                 ]
             }
         ],

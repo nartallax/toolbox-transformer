@@ -72,6 +72,83 @@ Usage:
 Calls that DO trigger the transformer: top-level calls (like in example below); top-level calls within namespaces; top-level calls within top-level blocks.  
 Calls that DO NOT trigger the transformer: calls results of which are saved into variable (`let a = registerEntity("x")`); calls that are part of some more complex expression (`registerEntity("x") || false`).  
 
+### Pseudomethods
+
+Use-case: you want to add new method to built-in object like Array, but don't want to pollute prototype.  
+
+How it works: when transformer discovers call of pseudomethod, it substitutes the call with the call of some other function, referenced indirectly. No actual prototype modification is done in runtime.  
+Caveat: if you add method to, for example, Array, methods on arrays will run just fine; hovewer, if you cast an array to any, transformer would not be able to detect the pseudomethod, and call will fail in runtime.  
+
+Configuration (task):  
+
+	{
+		"type":"pseudomethod",
+		"markerName": "PSEUDOMETHOD"
+	}
+
+Usage:  
+It is advised to separate definition in at least two files, typedefs and actual code, as shown in example below.  
+
+[Actual code file](ts/test_project/pseudomethod/pseudomethods.ts):  
+(in this file, functions that will actually be invoked are defined)  
+
+	// just a helper type, not important
+	export type ArrayValue<T> = T extends Array<infer N>? N: never;
+
+	// marker interface, more on that in other file
+	export type PSEUDOMETHOD<T> = T
+
+	// this function will actually be executed when [1,2,3].exists(x => x === 5) is called
+	export function exists<T>(this: Array<T>, checker: (value: T) => boolean): boolean {
+		for(let i = 0; i < this.length; i++){
+			if(checker(this[i])){
+				return true;
+			}
+		}
+		return false;
+	}
+
+	// just for example: better organizing of referenced fuctions
+	// should be detected as well
+	export namespace ArrayMathFunctions {
+		// this is also an example for more narrow generic typing
+		// .sum() won't be callable on array with something that is not number
+		export function sum(this: Array<number>): number {
+			let result = 0;
+			for(let i = 0; i < this.length; i++){
+				result += this[i];
+			}
+			return result;
+		}
+	}
+
+[Typedefs file](ts/test_project/pseudomethod/pseudomethod_typedefs.ts):
+(in this file, functions are bound to methods of Array)
+
+	// actual wording of imports here is important!
+	// when transformer will detect a pseudomethod, it will need to import real function code from somewhere
+	// and it deduces the path to module from this very imports
+	// so something like relative imports won't work well, as module paths are used as-is
+	import {exists, PSEUDOMETHOD} from "pseudomethod/pseudomethods";
+	import * as PmLib from "pseudomethod/pseudomethods";
+
+	// adding fields to global interfaces here
+	declare global {
+		interface Array<T> {
+			// pseudomethods must be referenced exactly like this
+			// marker interface that has exactly one type parameter, and it's value is `typeof real_function_to_call`
+			exists: PSEUDOMETHOD<typeof exists>
+			// some nesting is allowed in function reference
+			sum: PSEUDOMETHOD<typeof PmLib.ArrayMathFunctions.sum>
+		}
+	}
+
+	// explicitly exporting nothing just to force this file to be a module
+	// otherwise `declare global` won't work as well
+	export {}
+
+After that, you will be able to call your new methods just like ordinary methods: `[1,2,3].sum()`
+
 ### Generate a file that exports every class that implements interface
 
 Use-case: you have single-page application which is composed of tabs, and you need to enumerate all this tabs in some sort of collection (implying the tabs are defined as classes).  

@@ -1,5 +1,5 @@
 import {ToolboxTransformer} from "entrypoint";
-import {isCollectClassesTaskDef, isCollectCallsTaskDef, ToolboxTransformerConfig, isCollectValuesTaskDef, isPseudovariableTaskDef, isRemoveCallsTaskDef} from "transformer_config";
+import {isCollectClassesTaskDef, isCollectCallsTaskDef, ToolboxTransformerConfig, isCollectValuesTaskDef, isPseudovariableTaskDef, isRemoveCallsTaskDef, isPseudomethodTaskDef} from "transformer_config";
 import * as Tsc from "typescript";
 import * as Path from "path";
 import {CollectToplevelCallsTransformer} from "transformer_parts/collect_toplevel_calls";
@@ -7,6 +7,7 @@ import {CollectClassesTransformer} from "transformer_parts/collect_classes";
 import {CollectValuesTransformer} from "transformer_parts/collect_values";
 import {PseudovariableTransformer} from "transformer_parts/pseudovariable";
 import {RemoveCallsTransformer} from "transformer_parts/remove_calls";
+import {PseudomethodsTransformer} from "transformer_parts/pseudomethods";
 
 
 export class MainTransformer {
@@ -47,6 +48,12 @@ export class MainTransformer {
 			let removeCallTasks = toolboxContext.params.tasks.filter(isRemoveCallsTaskDef);
 			if(removeCallTasks.length > 0){
 				let transformer = new RemoveCallsTransformer(removeCallTasks);
+				this.allTransformers.push(transformer);
+			}
+
+			let pseudomethodTasks = toolboxContext.params.tasks.filter(isPseudomethodTaskDef);
+			if(pseudomethodTasks.length > 0){
+				let transformer = new PseudomethodsTransformer(pseudomethodTasks);
 				this.allTransformers.push(transformer);
 			}
 

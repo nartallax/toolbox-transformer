@@ -16,6 +16,7 @@ export type ToolboxTransformerTaskDefinition = CollectToplevelCallsTaskDef
 	| CollectValuesTaskDef
 	| PseudovariableTaskDef
 	| RemoveCallsTaskDef
+	| PseudomethodTaskDef
 
 /** This task will find all modules that have top-level calls of function returning certain type of value,
  * and generate imports of all these modules in a single file */
@@ -87,6 +88,13 @@ export interface RemoveCallsTaskDef {
 	markerName: string;
 }
 
+/** This task will allow you to mimic prototype extension, adding methods to existing objects */
+export interface PseudomethodTaskDef {
+	type: "pseudomethod";
+	/** Name of marker interface to trigger on */
+	markerName: string;
+}
+
 export function isCollectCallsTaskDef(x: unknown): x is CollectToplevelCallsTaskDef {
 	return !!x && typeof(x) === "object" && (x as CollectToplevelCallsTaskDef).type === "collect_toplevel_calls";
 }
@@ -105,4 +113,8 @@ export function isPseudovariableTaskDef(x: unknown): x is PseudovariableTaskDef 
 
 export function isRemoveCallsTaskDef(x: unknown): x is RemoveCallsTaskDef {
 	return !!x && typeof(x) === "object" && (x as RemoveCallsTaskDef).type === "remove_calls";
+}
+
+export function isPseudomethodTaskDef(x: unknown): x is PseudomethodTaskDef {
+	return !!x && typeof(x) === "object" && (x as PseudomethodTaskDef).type === "pseudomethod";
 }

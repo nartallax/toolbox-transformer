@@ -3,6 +3,8 @@ import {Imploder} from "@nartallax/imploder";
 import {promises as Fs} from "fs";
 import * as Path from "path";
 
+// TODO: test type arguments for pseudomethods
+
 test("main test", async assert => {
 
 	let testProjectGeneratedDir = Path.resolve("./test_project/generated");
@@ -56,6 +58,14 @@ test("main test", async assert => {
 	{
 		let file = await Fs.readFile(Path.resolve(outDir, "remove_calls/removable_fn_calls.js"), "utf-8");
 		assert(file).notContains("logDebug");
+	}
+
+	{
+		let file = await Fs.readFile(Path.resolve(outDir, "test_project_main.js"), "utf-8");
+		assert(file).notContains(".obj.arr.exists(");
+		assert(file).notContains("].sum(");
+		assert(file).contains(".sum.call([");
+		assert(file).contains(".exists.call(obj.arr");
 	}
 
 });
