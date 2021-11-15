@@ -1,6 +1,3 @@
-// just a helper type, not important
-export type ArrayValue<T> = T extends Array<infer N>? N: never;
-
 // marker interface, more on that in other file
 export type PSEUDOMETHOD<T> = T
 

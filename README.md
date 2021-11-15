@@ -2,8 +2,6 @@
 # Toolbox Transformer
 
 This is a Typescript transformer that can do some things with your code and make development easier.  
-Some of the features require configuration, some are not.  
-Also this transformer is usable as a base to build other transformers on.  
 
 ## Install
 
@@ -89,11 +87,8 @@ Configuration (task):
 Usage:  
 It is advised to separate definition in at least two files, typedefs and actual code, as shown in example below.  
 
-[Actual code file](ts/test_project/pseudomethod/pseudomethods.ts):  
+[Actual code file](test_project/pseudomethod/pseudomethods.ts):  
 (in this file, functions that will actually be invoked are defined)  
-
-	// just a helper type, not important
-	export type ArrayValue<T> = T extends Array<infer N>? N: never;
 
 	// marker interface, more on that in other file
 	export type PSEUDOMETHOD<T> = T
@@ -112,7 +107,7 @@ It is advised to separate definition in at least two files, typedefs and actual 
 	// should be detected as well
 	export namespace ArrayMathFunctions {
 		// this is also an example for more narrow generic typing
-		// .sum() won't be callable on array with something that is not number
+		// .sum won't be callable on array with something that is not number
 		export function sum(this: Array<number>): number {
 			let result = 0;
 			for(let i = 0; i < this.length; i++){
@@ -122,11 +117,11 @@ It is advised to separate definition in at least two files, typedefs and actual 
 		}
 	}
 
-[Typedefs file](ts/test_project/pseudomethod/pseudomethod_typedefs.ts):
+[Typedefs file](test_project/pseudomethod/pseudomethod_typedefs.ts):
 (in this file, functions are bound to methods of Array)
 
 	// actual wording of imports here is important!
-	// when transformer will detect a pseudomethod, it will need to import real function code from somewhere
+	// when transformer detects a pseudomethod, it needs to import real function code from somewhere
 	// and it deduces the path to module from this very imports
 	// so something like relative imports won't work well, as module paths are used as-is
 	import {exists, PSEUDOMETHOD} from "pseudomethod/pseudomethods";
@@ -136,7 +131,8 @@ It is advised to separate definition in at least two files, typedefs and actual 
 	declare global {
 		interface Array<T> {
 			// pseudomethods must be referenced exactly like this
-			// marker interface that has exactly one type parameter, and it's value is `typeof real_function_to_call`
+			// marker interface that has exactly one type parameter, 
+			// and it's value is `typeof real_function_to_call`
 			exists: PSEUDOMETHOD<typeof exists>
 			// some nesting is allowed in function reference
 			sum: PSEUDOMETHOD<typeof PmLib.ArrayMathFunctions.sum>
