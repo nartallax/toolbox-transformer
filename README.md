@@ -14,7 +14,7 @@ Then you need to put something like this in your tsconfig.json:
 	{
 		"compilerOptions": {
 			"plugins": [{
-					"transform": "../target/toolbox-transformer.js", 
+					"transform": "@nartallax/toolbox-transformer", 
 					"type":"imploder", <---- "program" will work here too if you're using ttypescript and not Imploder
 					"ignoreModules": ["^/?generated"],
 					"generatedImportPrefixes": "",
@@ -41,7 +41,7 @@ Most of the time transformer detects target pieces of code by types in this code
 So the best way to use the transformer is to use marker interfaces. Marker interface is empty interface with a distinct name. You assign this interface to the values you want processed, then configure transformer to use that interface, and it triggers only on values you want. Also this transformer is tested only on marker interfaces.  
 Also worth noting that marker interface is detectable if value is explicitly typed as this interface, or type of value explicitly inherits the interface, or has this interface as component of the type (that is, type (MARKER | null) is having the marker interface by transformer's logic); but not detectable if the value is implicitly conforms to marker interface, or uses marker interface as generic argument.  
 
-Complete definition of config shape is [here](ts/src/transformer_config.ts). There are comments.  
+Complete definition of config shape is [here](ts/src/transformer_config.ts). There are comments. You should consult this file in cases like "what values can this parameter be" and so on.  
 
 ### Generate a file that imports every module that has top-level call of function with a specific return type  
 
@@ -118,7 +118,7 @@ Configuration (task):
 		"type":"collect_values", 
 		"markerName": "FLAG_SYMBOL_TO_COLLECT", 
 		"file": "generated/flag_list.ts",
-		"collectionType": "readonly_set",
+		"collectionType": "readonly_set", // see config definition file for other collection types
 		"collectionValueType": "FlagSymbol",
 		"additionalImports": ["import {FlagSymbol} from \"value_enumeration/flag_symbol\";"],
 		"exportedName": "allFlags"
@@ -152,7 +152,7 @@ Configuration (tasks):
 	{
 		"type":"pseudovariable", 
 		"markerName": "PACKAGE_VERSION_MARKER", 
-		"valueType": "json_file_value", 
+		"valueType": "json_file_value", // see config definition file for other collection types
 		"file": "./packagelike.json", 
 		"jsonPath": ["description", "version"]
 	},
