@@ -1,3 +1,3 @@
-import {registerEntity} from "call_enumeration/entity_repo";
+import {registerEntity} from "call_enumeration/entity_repo"
 
-registerEntity("entity_a");
+registerEntity("entity_a")

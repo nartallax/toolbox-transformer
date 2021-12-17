@@ -1,6 +1,6 @@
-import {logDebug} from "remove_calls/removable_fn";
+import {logDebug} from "remove_calls/removable_fn"
 
-export function doSomething(): void  {
+export function doSomething(): void {
 	logDebug("Doing something!")
-	process.exit(1);
+	process.exit(1)
 }

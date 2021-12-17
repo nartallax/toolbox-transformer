@@ -1,11 +1,11 @@
-import {registerEntity} from "call_enumeration/entity_repo";
+import {registerEntity} from "call_enumeration/entity_repo"
 
 // won't work as expected
 
-!registerEntity("entity_c");
+!registerEntity("entity_c")
 
-let x = registerEntity("entity_c");
-void x;
+let x = registerEntity("entity_c")
+void x
 
-x = registerEntity("entity_c");
+x = registerEntity("entity_c")
 

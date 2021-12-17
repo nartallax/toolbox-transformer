@@ -2,49 +2,49 @@
  * All paths are resolved starting at tsconfig.json file */
 export interface ToolboxTransformerConfig {
 	/** What transformer should do when launched */
-	tasks?: ToolboxTransformerTaskDefinition[];
-	/** When the transformer generating import statement, what prefix should he use? 
+	tasks?: ToolboxTransformerTaskDefinition[]
+	/** When the transformer generating import statement, what prefix should he use?
 	 * Makes sense only for non-imploder usage */
-	generatedImportPrefixes?: string;
+	generatedImportPrefixes?: string
 	/** Ignore modules which names matches any of these regular expressions
 	 * It's good to ignore generated code directory, for example */
-	ignoreModules?: string[];
+	ignoreModules?: string[]
 }
 
 export type ToolboxTransformerTaskDefinition = CollectToplevelCallsTaskDef
-	| CollectClassesTaskDef
-	| CollectValuesTaskDef
-	| PseudovariableTaskDef
-	| RemoveCallsTaskDef
-	| PseudomethodTaskDef
+| CollectClassesTaskDef
+| CollectValuesTaskDef
+| PseudovariableTaskDef
+| RemoveCallsTaskDef
+| PseudomethodTaskDef
 
 /** This task will find all modules that have top-level calls of function returning certain type of value,
  * and generate imports of all these modules in a single file */
 export interface CollectToplevelCallsTaskDef {
-	type: "collect_toplevel_calls";
+	type: "collect_toplevel_calls"
 	/** Return type of function call */
-	returnTypeName: string;
+	returnTypeName: string
 	/** Path to a file the imports will be placed into */
-	file: string;
+	file: string
 }
 
-export type CollectTaskCollectionType = "set" | "array" | "readonly_set" | "readonly_array";
+export type CollectTaskCollectionType = "set" | "array" | "readonly_set" | "readonly_array"
 
 /** This task will find all classes that extend interface/class with certain name,
  * and generate file that will export collection of those classes
  * Will collect only toplevel, exported, non-abstract classes */
 export interface CollectClassesTaskDef {
-	type: "collect_classes",
+	type: "collect_classes"
 	/** Name of interface/class the class must extend to be placed into array */
-	markerName: string;
+	markerName: string
 	/** Path to file where array code will be generated */
-	file: string;
+	file: string
 	/** Type of single item of the collection */
-	collectionValueType: string;
+	collectionValueType: string
 	/** Type of collection that will be generated */
-	collectionType: CollectTaskCollectionType;
+	collectionType: CollectTaskCollectionType
 	/** Under what name array will be exported */
-	exportedName: string;
+	exportedName: string
 	/** More imports, to make collectionValueType findable?
 	 * Expected just lines like `import {MyValueClass} from "somewhere/my_module";` */
 	additionalImports?: string[]
@@ -53,17 +53,17 @@ export interface CollectClassesTaskDef {
 /** This task will find all values that extends certain interface/class,
  * and generate file that will export collection of those values */
 export interface CollectValuesTaskDef {
-	type: "collect_values";
+	type: "collect_values"
 	/** Name of interface/class the class must extend to be placed into array */
-	markerName: string;
+	markerName: string
 	/** Path to file where array code will be generated */
-	file: string;
+	file: string
 	/** Type of single item of the collection */
-	collectionValueType: string;
+	collectionValueType: string
 	/** Type of collection that will be generated */
-	collectionType: CollectTaskCollectionType;
+	collectionType: CollectTaskCollectionType
 	/** Under what name array will be exported */
-	exportedName: string;
+	exportedName: string
 	/** More imports, to make collectionValueType findable?
 	 * Expected just lines like `import {MyValueClass} from "somewhere/my_module";` */
 	additionalImports?: string[]
@@ -71,50 +71,50 @@ export interface CollectValuesTaskDef {
 
 /** This task will substitute variables with certain types with some compile-time computed values */
 export interface PseudovariableTaskDef {
-	type: "pseudovariable";
+	type: "pseudovariable"
 	/** Name of marker interface to trigger on */
-	markerName: string;
+	markerName: string
 	/** Type of value to use */
-	valueType: "module_name" | "generation_date_seconds" | "json_file_value";
+	valueType: "module_name" | "generation_date_seconds" | "json_file_value"
 	/** Path to a file where data will be taken from */
-	file?: string;
+	file?: string
 	/** Identifiers and indices in JSON of the file to extract required information */
-	jsonPath?: (string | number)[];
+	jsonPath?: (string | number)[]
 }
 
 export interface RemoveCallsTaskDef {
-	type: "remove_calls";
+	type: "remove_calls"
 	/** Name of marker interface to trigger on */
-	markerName: string;
+	markerName: string
 }
 
 /** This task will allow you to mimic prototype extension, adding methods to existing objects */
 export interface PseudomethodTaskDef {
-	type: "pseudomethod";
+	type: "pseudomethod"
 	/** Name of marker interface to trigger on */
-	markerName: string;
+	markerName: string
 }
 
 export function isCollectCallsTaskDef(x: unknown): x is CollectToplevelCallsTaskDef {
-	return !!x && typeof(x) === "object" && (x as CollectToplevelCallsTaskDef).type === "collect_toplevel_calls";
+	return !!x && typeof(x) === "object" && (x as CollectToplevelCallsTaskDef).type === "collect_toplevel_calls"
 }
 
 export function isCollectClassesTaskDef(x: unknown): x is CollectClassesTaskDef {
-	return !!x && typeof(x) === "object" && (x as CollectClassesTaskDef).type === "collect_classes";
+	return !!x && typeof(x) === "object" && (x as CollectClassesTaskDef).type === "collect_classes"
 }
 
 export function isCollectValuesTaskDef(x: unknown): x is CollectValuesTaskDef {
-	return !!x && typeof(x) === "object" && (x as CollectValuesTaskDef).type === "collect_values";
+	return !!x && typeof(x) === "object" && (x as CollectValuesTaskDef).type === "collect_values"
 }
 
 export function isPseudovariableTaskDef(x: unknown): x is PseudovariableTaskDef {
-	return !!x && typeof(x) === "object" && (x as PseudovariableTaskDef).type === "pseudovariable";
+	return !!x && typeof(x) === "object" && (x as PseudovariableTaskDef).type === "pseudovariable"
 }
 
 export function isRemoveCallsTaskDef(x: unknown): x is RemoveCallsTaskDef {
-	return !!x && typeof(x) === "object" && (x as RemoveCallsTaskDef).type === "remove_calls";
+	return !!x && typeof(x) === "object" && (x as RemoveCallsTaskDef).type === "remove_calls"
 }
 
 export function isPseudomethodTaskDef(x: unknown): x is PseudomethodTaskDef {
-	return !!x && typeof(x) === "object" && (x as PseudomethodTaskDef).type === "pseudomethod";
+	return !!x && typeof(x) === "object" && (x as PseudomethodTaskDef).type === "pseudomethod"
 }

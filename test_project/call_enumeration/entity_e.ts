@@ -1,15 +1,15 @@
-import {registerEntity} from "call_enumeration/entity_repo";
+import {registerEntity} from "call_enumeration/entity_repo"
 
 export namespace A {
 	namespace B {
 		namespace C {
+ {
 			{
-				{
-					registerEntity("entity_e")
-				}
+				registerEntity("entity_e")
 			}
 		}
-		void C;
+		}
+		void C
 	}
-	void B;
+	void B
 }

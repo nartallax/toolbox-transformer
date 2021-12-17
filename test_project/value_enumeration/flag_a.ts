@@ -1,3 +1,3 @@
-import {makeFlagSymbol} from "value_enumeration/flag_symbol";
+import {makeFlagSymbol} from "value_enumeration/flag_symbol"
 
-export const flagA = makeFlagSymbol("flag_a");
+export const flagA = makeFlagSymbol("flag_a")

@@ -2,8 +2,8 @@
 // when transformer will detect a pseudomethod, it will need to import real function code from somewhere
 // and it deduces the path to module from this very imports
 // so something like relative imports won't work well, as module paths are used as-is
-import {exists, PSEUDOMETHOD} from "pseudomethod/pseudomethods";
-import * as PmLib from "pseudomethod/pseudomethods";
+import {exists, PSEUDOMETHOD} from "pseudomethod/pseudomethods"
+import * as PmLib from "pseudomethod/pseudomethods"
 
 // adding fields to global interfaces here
 declare global {

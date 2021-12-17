@@ -1,5 +1,5 @@
-import {moduleName, packageVersion} from "pseudovars/build_props";
+import {moduleName, packageVersion} from "pseudovars/build_props"
 
-console.log(packageVersion.split("."));
+console.log(packageVersion.split("."))
 let x = moduleName + ", nya!"
-console.log(x);
+console.log(x)

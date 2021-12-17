@@ -1,5 +1,5 @@
-import {makeFlagSymbol} from "value_enumeration/flag_symbol";
+import {makeFlagSymbol} from "value_enumeration/flag_symbol"
 
-const flagB = makeFlagSymbol("flag_b");
+const flagB = makeFlagSymbol("flag_b")
 
-console.log(flagB);
+console.log(flagB)
