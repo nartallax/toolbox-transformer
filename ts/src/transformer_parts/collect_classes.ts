@@ -45,15 +45,18 @@ export class CollectClassesTransformer implements SubTransformer {
 		});
 	}
 
-	transform(params: SubTransformerTransformParams): Tsc.SourceFile {
+	/** Find in file all the exported classes that matches markerNames
+	 * @returns array of results for each task; result of task is array of classes; classes are represented as path to them within module
+	 */
+	static findClassesWithPaths(params: SubTransformerTransformParams, tasks: {markerName: string}[]): PathToClassInModule[][] {
 		// task index -> exported names
-		let exportedClassNames = this.tasks.map(() => [] as PathToClassInModule[]);
+		let exportedClassNames = tasks.map(() => [] as PathToClassInModule[]);
 
 		let visitor = (node: Tsc.Node, namePath: string[]): Tsc.VisitResult<Tsc.Node> => {
 			if(Tsc.isClassDeclaration(node) && node.name && isNodeExported(Tsc, node) && !isNodeAbstract(Tsc, node)){
 				let name = node.name.text;
-				this.tasks.forEach((task, taskIndex) => {
-					if(declarationExtendsMarker(Tsc, params.typechecker, node, task.def.markerName)){
+				tasks.forEach((task, taskIndex) => {
+					if(declarationExtendsMarker(Tsc, params.typechecker, node, task.markerName)){
 						exportedClassNames[taskIndex].push([...namePath, name]);
 					}
 				})
@@ -61,8 +64,8 @@ export class CollectClassesTransformer implements SubTransformer {
 				for(let decl of node.declarationList.declarations){
 					let type = params.typechecker.getTypeAtLocation(decl);
 					// optimise here? check if value is classlike before iteration
-					this.tasks.forEach((task, taskIndex) => {
-						if(typeIsClasslikeExtendingMarker(Tsc, params.typechecker, type, task.def.markerName)){
+					tasks.forEach((task, taskIndex) => {
+						if(typeIsClasslikeExtendingMarker(Tsc, params.typechecker, type, task.markerName)){
 							exportedClassNames[taskIndex].push([...namePath, decl.name.getText()]);
 						}
 					})
@@ -76,6 +79,15 @@ export class CollectClassesTransformer implements SubTransformer {
 
 		Tsc.visitEachChild(params.file, node => visitor(node, []), params.transformContext);
 
+		return exportedClassNames
+	}
+
+	transform(params: SubTransformerTransformParams): Tsc.SourceFile {
+		let exportedClassNames = CollectClassesTransformer.findClassesWithPaths(
+			params, 
+			this.tasks.map(x => x.def)
+		)
+		
 		this.tasks.forEach((task, taskIndex) => {
 			let newExportedClasses = exportedClassNames[taskIndex];
 			let oldExportedClasses = task.modules.get(params.moduleName);

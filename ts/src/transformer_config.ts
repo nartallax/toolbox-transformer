@@ -17,6 +17,7 @@ export type ToolboxTransformerTaskDefinition = CollectToplevelCallsTaskDef
 	| PseudovariableTaskDef
 	| RemoveCallsTaskDef
 	| PseudomethodTaskDef
+	| TjsClassesTaskDef
 
 /** This task will find all modules that have top-level calls of function returning certain type of value,
  * and generate imports of all these modules in a single file */
@@ -43,6 +44,19 @@ export interface CollectClassesTaskDef {
 	collectionValueType: string;
 	/** Type of collection that will be generated */
 	collectionType: CollectTaskCollectionType;
+	/** Under what name array will be exported */
+	exportedName: string;
+	/** More imports, to make collectionValueType findable?
+	 * Expected just lines like `import {MyValueClass} from "somewhere/my_module";` */
+	additionalImports?: string[]
+}
+
+export interface TjsClassesTaskDef {
+	type: "tjs_classes",
+	/** Name of interface/class the class must extend to be placed into array */
+	markerName: string;
+	/** Path to file where array code will be generated */
+	file: string;
 	/** Under what name array will be exported */
 	exportedName: string;
 	/** More imports, to make collectionValueType findable?
@@ -117,4 +131,8 @@ export function isRemoveCallsTaskDef(x: unknown): x is RemoveCallsTaskDef {
 
 export function isPseudomethodTaskDef(x: unknown): x is PseudomethodTaskDef {
 	return !!x && typeof(x) === "object" && (x as PseudomethodTaskDef).type === "pseudomethod";
+}
+
+export function isTjsClassesTaskDef(x: unknown): x is TjsClassesTaskDef {
+	return !!x && typeof(x) === "object" && (x as TjsClassesTaskDef).type === "tjs_classes";
 }

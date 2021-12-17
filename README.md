@@ -85,7 +85,7 @@ Configuration (task):
 	}
 
 Usage:  
-It is advised to separate definition in at least two files, typedefs and actual code, as shown in example below.  
+It is required to separate definition in at least two files, typedefs and actual code, as shown in example below.  
 
 [Actual code file](test_project/pseudomethod/pseudomethods.ts):  
 (in this file, functions that will actually be invoked are defined)  

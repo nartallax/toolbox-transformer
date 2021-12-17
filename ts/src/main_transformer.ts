@@ -1,5 +1,5 @@
 import {ToolboxTransformer} from "entrypoint";
-import {isCollectClassesTaskDef, isCollectCallsTaskDef, ToolboxTransformerConfig, isCollectValuesTaskDef, isPseudovariableTaskDef, isRemoveCallsTaskDef, isPseudomethodTaskDef} from "transformer_config";
+import {isCollectClassesTaskDef, isCollectCallsTaskDef, ToolboxTransformerConfig, isCollectValuesTaskDef, isPseudovariableTaskDef, isRemoveCallsTaskDef, isPseudomethodTaskDef, isTjsClassesTaskDef} from "transformer_config";
 import * as Tsc from "typescript";
 import * as Path from "path";
 import {CollectToplevelCallsTransformer} from "transformer_parts/collect_toplevel_calls";
@@ -8,6 +8,7 @@ import {CollectValuesTransformer} from "transformer_parts/collect_values";
 import {PseudovariableTransformer} from "transformer_parts/pseudovariable";
 import {RemoveCallsTransformer} from "transformer_parts/remove_calls";
 import {PseudomethodsTransformer} from "transformer_parts/pseudomethods";
+import {TjsClassesTransformer} from "transformer_parts/tjs_class";
 
 
 export class MainTransformer {
@@ -54,6 +55,12 @@ export class MainTransformer {
 			let pseudomethodTasks = toolboxContext.params.tasks.filter(isPseudomethodTaskDef);
 			if(pseudomethodTasks.length > 0){
 				let transformer = new PseudomethodsTransformer(pseudomethodTasks);
+				this.allTransformers.push(transformer);
+			}
+
+			let tjsClassesTasks = toolboxContext.params.tasks.filter(isTjsClassesTaskDef);
+			if(tjsClassesTasks.length > 0){
+				let transformer = new TjsClassesTransformer(tjsClassesTasks, toolboxContext);
 				this.allTransformers.push(transformer);
 			}
 
@@ -111,7 +118,7 @@ export interface SubTransformerTransformParams {
 	file: Tsc.SourceFile;
 	moduleName: string;
 	typechecker: Tsc.TypeChecker;
-	transformContext: Tsc.TransformationContext;
+	transformContext: Tsc.TransformationContext
 }
 
 export interface SubTransformer {
