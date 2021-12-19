@@ -132,7 +132,7 @@ export function printFileWithTransformer(tsc: typeof Tsc, file: Tsc.SourceFile, 
  * Will probably fail on anything barely complex
  * (that is, no prototypes, functions, symbols, getters/setters, bigints...) */
 export function createLiteralOfValue(tsc: typeof Tsc, value: unknown): Tsc.Expression {
-	switch (typeof(value)){
+	switch(typeof(value)){
 		case "undefined": return tsc.factory.createVoidZero()
 		case "string": return tsc.factory.createStringLiteral(value)
 		case "number": return tsc.factory.createNumericLiteral(value)
@@ -157,4 +157,89 @@ export function createLiteralOfValue(tsc: typeof Tsc, value: unknown): Tsc.Expre
 
 		default: throw new Error("Cannot create literal of type " + typeof(value))
 	}
+}
+
+/** Having an entity name (that is essentialy a sequence of identifiers), extract those identifiers into array */
+export function entityNameToArray(tsc: typeof Tsc, expr: Tsc.EntityName): string[] {
+	let result = [] as string[]
+
+	for(;;){
+		if(tsc.isIdentifier(expr)){
+			result.push(expr.text)
+			break
+		} else if(tsc.isQualifiedName(expr)){
+			result.push(expr.right.text)
+			expr = expr.left
+		} else {
+			throw new Error("Expected following expression to be property access expression, or identifier, but it's neither: " + expr)
+		}
+	}
+
+	return result.reverse()
+}
+
+/** Having a sequence of identifiers, convert it to property chain expression */
+export function arrayToPropertyAccessChain(tsc: typeof Tsc, arr: string[]): Tsc.Expression {
+	let result: Tsc.Expression = tsc.factory.createIdentifier(arr[0])
+	for(let i = 1; i < arr.length; i++){
+		result = tsc.factory.createPropertyAccessExpression(result, arr[i])
+	}
+	return result
+}
+
+export interface ModuleImportStructure {
+	/** Map of names of modules (imported name -> module name) that are imported as `import * as X from "X";` */
+	readonly moduleObjects: ReadonlyMap<string, string>
+	/** Map of values (value name -> module name) that are imported as `import {x, y} from "Z";` */
+	readonly namedImports: ReadonlyMap<string, string>
+}
+
+/** Convert imports of source file to simplier structure */
+export function parseModuleFileImports(tsc: typeof Tsc, file: Tsc.SourceFile, transformContext: Tsc.TransformationContext): ModuleImportStructure {
+	let namedImports = new Map<string, string>()
+	let moduleObjects = new Map<string, string>()
+
+	let visitor = (node: Tsc.Node): Tsc.VisitResult<Tsc.Node> => {
+		if(tsc.isImportDeclaration(node) && tsc.isStringLiteral(node.moduleSpecifier) && node.importClause && node.importClause.namedBindings){
+			let moduleName = node.moduleSpecifier.text
+			if(tsc.isNamespaceImport(node.importClause.namedBindings)){
+				moduleObjects.set(node.importClause.namedBindings.name.text, moduleName)
+			} else if(tsc.isNamedImports(node.importClause.namedBindings)){
+				for(let el of node.importClause.namedBindings.elements){
+					namedImports.set(el.name.text, moduleName)
+				}
+			}
+		} else {
+			tsc.visitEachChild(node, visitor, transformContext)
+		}
+		return node
+	}
+
+	tsc.visitEachChild(file, visitor, transformContext)
+
+	return {moduleObjects, namedImports}
+}
+
+/** Having variable statement, extract all the identifiers of the variables this statement declares
+ * Accounts for multiple variables and destructuring */
+export function getIdentifiersFromVariableDeclarations(tsc: typeof Tsc, varstat: Tsc.VariableStatement): Tsc.Identifier[] {
+	let result: Tsc.Identifier[] = []
+
+	let processName = (name: Tsc.BindingName): void => {
+		if(tsc.isIdentifier(name)){
+			result.push(name)
+		} else if(tsc.isArrayBindingPattern(name) || tsc.isObjectBindingPattern(name)){
+			for(let el of name.elements){
+				if(tsc.isBindingElement(el)){
+					processName(el.name)
+				}
+			}
+		}
+	}
+
+	for(let decl of varstat.declarationList.declarations){
+		processName(decl.name)
+	}
+
+	return result
 }

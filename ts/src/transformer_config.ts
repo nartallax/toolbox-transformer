@@ -17,6 +17,7 @@ export type ToolboxTransformerTaskDefinition = CollectToplevelCallsTaskDef
 | PseudovariableTaskDef
 | RemoveCallsTaskDef
 | PseudomethodTaskDef
+| CollectTypeofTypeMapTaskDef
 
 /** This task will find all modules that have top-level calls of function returning certain type of value,
  * and generate imports of all these modules in a single file */
@@ -29,6 +30,7 @@ export interface CollectToplevelCallsTaskDef {
 }
 
 export type CollectTaskCollectionType = "set" | "array" | "readonly_set" | "readonly_array"
+export type CollectTaskMapType = "map" | "object" | "readonly_map" | "readonly_object"
 
 /** This task will find all classes that extend interface/class with certain name,
  * and generate file that will export collection of those classes
@@ -95,6 +97,32 @@ export interface PseudomethodTaskDef {
 	markerName: string
 }
 
+/** This task will find all types that extend type expression, like type MyType = Expr<typeof Value>
+ * And collect them into map like "MyType": Value */
+export interface CollectTypeofTypeMapTaskDef {
+	type: "collect_typeof_type_map"
+	/** Name of interface/class the class must extend to trigger the transformer */
+	markerName: string
+	/** Where to place generated code */
+	file: string
+	/** Type of single item of the collection. Default: "unknown" */
+	collectionValueType?: string
+	/** Type of collection that will be generated */
+	collectionType: CollectTaskMapType
+	/** Under what name resulting value will be exported from generatedcode */
+	exportedName: string
+	/** How exactly string-keys in the map shoul look like?
+	 * last_identifier - take just identifier of the type name
+	 * all_identifiers - all the nesting, like namespaces + last_identifier
+	 * all_identifiers_and_module_path - full path to module + all_identifiers (default) */
+	typeNaming?: "last_identifier" | "all_identifiers" | "all_identifiers_and_module_path"
+	/** More imports, to make collectionValueType findable?
+	 * Expected just lines like `import {MyValueClass} from "somewhere/my_module";` */
+	additionalImports?: string[]
+	/** What value will have key if it has more than one value */
+	onDuplicates: "null" | "array"
+}
+
 export function isCollectCallsTaskDef(x: unknown): x is CollectToplevelCallsTaskDef {
 	return !!x && typeof(x) === "object" && (x as CollectToplevelCallsTaskDef).type === "collect_toplevel_calls"
 }
@@ -117,4 +145,8 @@ export function isRemoveCallsTaskDef(x: unknown): x is RemoveCallsTaskDef {
 
 export function isPseudomethodTaskDef(x: unknown): x is PseudomethodTaskDef {
 	return !!x && typeof(x) === "object" && (x as PseudomethodTaskDef).type === "pseudomethod"
+}
+
+export function isCollectTypeofTypeMapTaskDef(x: unknown): x is CollectTypeofTypeMapTaskDef {
+	return !!x && typeof(x) === "object" && (x as CollectTypeofTypeMapTaskDef).type === "collect_typeof_type_map"
 }

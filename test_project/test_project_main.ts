@@ -2,6 +2,7 @@ import {entityRepo} from "call_enumeration/entity_repo"
 import "generated/calls_enumeration"
 import "classes_enumeration/page"
 import {allThePages} from "generated/page_list"
+import {dtoSourceListMap} from "generated/dto_source_list_map"
 
 export function main() {
 	console.log(entityRepo)
@@ -10,4 +11,5 @@ export function main() {
 	let obj = {arr}
 	console.log(obj.arr.exists(x => x === 5))
 	console.log([1, 2, 3, 4].sum())
+	console.log(JSON.stringify(dtoSourceListMap))
 }

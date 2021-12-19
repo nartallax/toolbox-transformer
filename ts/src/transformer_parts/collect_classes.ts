@@ -1,10 +1,11 @@
 import {ToolboxTransformer} from "entrypoint"
-import {generatedFileCommentPrefix, SubTransformer, SubTransformerTransformParams} from "main_transformer"
+import {SubTransformer, SubTransformerTransformParams} from "main_transformer"
 import {CollectClassesTaskDef, ToolboxTransformerConfig} from "transformer_config"
 import * as Path from "path"
 import * as Tsc from "typescript"
-import {declarationExtendsMarker, isNodeAbstract, isNodeExported, typeIsClasslikeExtendingMarker} from "tsc_tricks"
-import {getExportStatementText, setsEqual} from "utils"
+import {declarationExtendsMarker, getIdentifiersFromVariableDeclarations, isNodeAbstract, isNodeExported, typeIsClasslikeExtendingMarker} from "tsc_tricks"
+import {getImportStatementsText, getSequenceExportStatementText, setsEqual} from "utils"
+import {writeGeneratedFile} from "transformer_tricks"
 
 type PathToClassInModule = string[]
 
@@ -58,12 +59,13 @@ export class CollectClassesTransformer implements SubTransformer {
 					}
 				})
 			} else if(Tsc.isVariableStatement(node) && isNodeExported(Tsc, node)){
-				for(let decl of node.declarationList.declarations){
-					let type = params.typechecker.getTypeAtLocation(decl)
+				let varNames = getIdentifiersFromVariableDeclarations(Tsc, node)
+				for(let identifier of varNames){
+					let type = params.typechecker.getTypeAtLocation(identifier)
 					// optimise here? check if value is classlike before iteration
 					this.tasks.forEach((task, taskIndex) => {
 						if(typeIsClasslikeExtendingMarker(Tsc, params.typechecker, type, task.def.markerName)){
-							exportedClassNames[taskIndex].push([...namePath, decl.name.getText()])
+							exportedClassNames[taskIndex].push([...namePath, identifier.getText()])
 						}
 					})
 				}
@@ -98,28 +100,11 @@ export class CollectClassesTransformer implements SubTransformer {
 	}
 
 	private generateFile(task: ModulesOfTask): void {
-		let modulePrefix = this.toolboxContext.params?.generatedImportPrefixes || ""
-
 		let moduleNames = [...task.modules.keys()].sort()
 
-		let importStr = moduleNames.map((moduleName, i) => {
-			return `import * as ${"_" + i} from "${modulePrefix + moduleName}";`
-		})
-			.join("\n")
-
-		if(task.def.additionalImports){
-			task.def.additionalImports.forEach(importLine => {
-				importStr += "\n" + importLine
-			})
-		}
-
-		let exportStr = getExportStatementText(moduleNames, task.def, task.modules)
-
-		Tsc.sys.writeFile(task.def.file, generatedFileCommentPrefix + importStr + "\n\n" + exportStr)
-
-		if(this.toolboxContext.imploder){
-			this.toolboxContext.imploder.compiler.notifyFsObjectChange(task.def.file)
-		}
+		let importStr = getImportStatementsText(moduleNames, task.def)
+		let exportStr = getSequenceExportStatementText(moduleNames, task.def, task.modules)
+		writeGeneratedFile(this.toolboxContext, task.def.file, importStr + exportStr)
 	}
 
 }

@@ -68,4 +68,21 @@ test("main test", async assert => {
 		assert(file).contains(".exists.call(obj.arr")
 	}
 
+	{
+		let file = await Fs.readFile(Path.resolve(testProjectGeneratedDir, "dto_source_list_map.ts"), "utf-8")
+		assert(file).contains(`{
+	"/typeof_type_map/dto:DtoTypes.OrderA": _0["DtoTypes"]["a"],
+	"/typeof_type_map/dto:DtoTypes.OrderB": _0["dtoX"],
+	"/typeof_type_map/dto:DtoTypes.OrderC": _1["dtoBase"],
+	"/typeof_type_map/dto:OrderD": _0["DtoTypes"]["a"],
+	"/typeof_type_map/dto:OrderE": _0["dtoX"],
+	"/typeof_type_map/dto:OrderF": _1["dtoBase"],
+	"/typeof_type_map/dto:OrderL": null,
+	"/typeof_type_map/dto_types:OrderH": _0["DtoTypes"]["a"],
+	"/typeof_type_map/dto_types:OrderK": _0["dtoX"],
+	"/typeof_type_map/dto_types:OrderL": _1["dtoBase"],
+	"/typeof_type_map/dto_types:OrderM": _1["dtoBase"],
+}`)
+	}
+
 })

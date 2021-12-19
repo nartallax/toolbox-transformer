@@ -1,0 +1,1 @@
+export const dtoBase = "dto_base"

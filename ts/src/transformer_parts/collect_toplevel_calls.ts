@@ -1,9 +1,10 @@
 import {ToolboxTransformer} from "entrypoint"
-import {generatedFileCommentPrefix, SubTransformer, SubTransformerTransformParams} from "main_transformer"
+import {SubTransformer, SubTransformerTransformParams} from "main_transformer"
 import {CollectToplevelCallsTaskDef, ToolboxTransformerConfig} from "transformer_config"
 import * as Path from "path"
 import * as Tsc from "typescript"
 import {typeHasMarker} from "tsc_tricks"
+import {writeGeneratedFile} from "transformer_tricks"
 
 interface ModulesOfTask {
 	modules: Set<string>
@@ -76,18 +77,12 @@ export class CollectToplevelCallsTransformer implements SubTransformer {
 	}
 
 	private generateFile(task: ModulesOfTask): void {
-		let prefix = this.toolboxContext.params?.generatedImportPrefixes || ""
-
 		let fileContent = [...task.modules]
 			.sort()
-			.map(module => "import \"" + prefix + module + "\";")
+			.map(module => "import \"" + module + "\";")
 			.join("\n")
 
-		Tsc.sys.writeFile(task.def.file, generatedFileCommentPrefix + fileContent)
-
-		if(this.toolboxContext.imploder){
-			this.toolboxContext.imploder.compiler.notifyFsObjectChange(task.def.file)
-		}
+		writeGeneratedFile(this.toolboxContext, task.def.file, fileContent)
 	}
 
 }

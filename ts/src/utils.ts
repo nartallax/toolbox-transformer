@@ -15,13 +15,13 @@ export function setsEqual<T>(a: Set<T>, b: Set<T>): boolean {
 	return true
 }
 
-interface ExportingTaskDefBase {
+interface SequenceExportingTaskDefBase {
 	collectionValueType: string
 	collectionType: CollectTaskCollectionType
 	exportedName: string
 }
 
-export function getExportStatementText(moduleNames: string[], taskDef: ExportingTaskDefBase, modules: Map<string, string[][]>): string {
+export function getSequenceExportStatementText(moduleNames: string[], taskDef: SequenceExportingTaskDefBase, modules: Map<string, string[][]>): string {
 	let exportTypeStr: string
 	let exportValueStr = "["
 	moduleNames.forEach((moduleName, i) => {
@@ -35,7 +35,7 @@ export function getExportStatementText(moduleNames: string[], taskDef: Exporting
 	})
 	exportValueStr += "\n]"
 
-	switch (taskDef.collectionType){
+	switch(taskDef.collectionType){
 		case "array":
 			exportTypeStr = taskDef.collectionValueType + "[]"
 			break
@@ -55,4 +55,22 @@ export function getExportStatementText(moduleNames: string[], taskDef: Exporting
 	}
 
 	return `export const ${taskDef.exportedName}: ${exportTypeStr} = ${exportValueStr};`
+}
+
+interface ImportingTaskDefBase {
+	additionalImports?: string[]
+}
+
+export function getImportStatementsText(moduleNames: string[], taskDef: ImportingTaskDefBase): string {
+	let importStr = moduleNames.map((moduleName, i) => {
+		return `import * as ${"_" + i} from "${moduleName}";`
+	}).join("\n")
+
+	if(taskDef.additionalImports){
+		taskDef.additionalImports.forEach(importLine => {
+			importStr += "\n" + importLine
+		})
+	}
+
+	return importStr + "\n\n"
 }

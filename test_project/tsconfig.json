@@ -28,7 +28,8 @@
                     {"type":"pseudovariable", "markerName": "PACKAGE_VERSION_MARKER", "valueType": "json_file_value", "file": "./packagelike.json", "jsonPath": ["description", "version"]},
                     {"type":"pseudovariable", "markerName": "MODULE_NAME_MARKER", "valueType": "module_name" },
                     {"type":"remove_calls","markerName": "REMOVE_THIS_FUNCTION_CALL"},
-                    {"type":"pseudomethod","markerName": "PSEUDOMETHOD"}
+                    {"type":"pseudomethod","markerName": "PSEUDOMETHOD"},
+                    {"type":"collect_typeof_type_map", "markerName": "DTO_MARKER_TYPE","file": "generated/dto_source_list_map.ts", "collectionType": "readonly_object", "exportedName": "dtoSourceListMap"}
                 ]
             }
         ],

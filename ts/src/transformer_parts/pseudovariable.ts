@@ -28,7 +28,7 @@ export class PseudovariableTransformer implements SubTransformer {
 	}
 
 	private makeGetValueFunction(def: PseudovariableTaskDef): (context: SubTransformerTransformParams) => Tsc.Expression {
-		switch (def.valueType){
+		switch(def.valueType){
 			case "module_name":
 				return context => createLiteralOfValue(Tsc, context.moduleName)
 			case "generation_date_seconds":

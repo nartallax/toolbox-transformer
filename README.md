@@ -282,3 +282,37 @@ Usage:
 	}
 
 Note: function really should not return any value that you may want to use. If you do, removal of the call may lead to broken code.  
+
+### Collect Map of type names to values using typeof
+
+Use-case: some complicated user input validation system.  
+
+Configuration (task):  
+
+	{
+		"type":"collect_typeof_type_map", 
+		"markerName": "DTO_MARKER_TYPE",
+		"file": "generated/dto_source_list_map.ts", 
+		"collectionType": "readonly_object", 
+		"exportedName": "dtoSourceListMap"
+	}
+
+Usage:  
+
+	// marker interface
+	export interface DTO_MARKER_TYPE {}
+
+	// type expression to make things easier
+	// it's not important what type it will be exactly
+	// it just must have marker type and take type argument
+	export type Binder<T> = {value: T} & DTO_MARKER_TYPE
+
+	// some value that we will bind to types
+	export const myValue = "i'm a string"
+
+	// this will generate entry with key "BoundType" (maybe with module name, configurable)
+	// and value myValue
+	export type BoundType = Binder<typeof myValue>
+
+	// this will do the same
+	export interface BoundType2 extends Binder<typeof myValue>{}
