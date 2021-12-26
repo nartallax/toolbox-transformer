@@ -21,5 +21,5 @@ void y
 
 export const dtoX = 5
 
-const dtoY = 10
-export type OrderL = DtoByFields<typeof dtoY>
+//const dtoY = 10
+//export type OrderL = DtoByFields<typeof dtoY>

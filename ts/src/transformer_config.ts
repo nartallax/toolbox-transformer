@@ -45,7 +45,7 @@ export interface CollectClassesTaskDef {
 	/** Type of single item of the collection */
 	collectionValueType: string
 	/** Type of collection that will be generated */
-	collectionType: CollectTaskCollectionType
+	collectionType: CollectTaskCollectionType | CollectTaskMapType
 	/** Under what name array will be exported */
 	exportedName: string
 	/** More imports, to make collectionValueType findable?
@@ -64,7 +64,7 @@ export interface CollectValuesTaskDef {
 	/** Type of single item of the collection */
 	collectionValueType: string
 	/** Type of collection that will be generated */
-	collectionType: CollectTaskCollectionType
+	collectionType: CollectTaskCollectionType | CollectTaskMapType
 	/** Under what name array will be exported */
 	exportedName: string
 	/** More imports, to make collectionValueType findable?
@@ -112,16 +112,9 @@ export interface CollectTypeofTypeMapTaskDef {
 	collectionType: CollectTaskMapType
 	/** Under what name resulting value will be exported from generatedcode */
 	exportedName: string
-	/** How exactly string-keys in the map shoul look like?
-	 * last_identifier - take just identifier of the type name
-	 * all_identifiers - all the nesting, like namespaces + last_identifier
-	 * all_identifiers_and_module_path - full path to module + all_identifiers (default) */
-	typeNaming?: "last_identifier" | "all_identifiers" | "all_identifiers_and_module_path"
 	/** More imports, to make collectionValueType findable?
 	 * Expected just lines like `import {MyValueClass} from "somewhere/my_module";` */
 	additionalImports?: string[]
-	/** What value will have key if it has more than one value */
-	onDuplicates: "null" | "array"
 	/** If enabled, only exported types will make it into the map
 	 * Note that it is not related to exportness of the values related to types
 	 * Values are must always be exported,
@@ -144,6 +137,8 @@ export interface DecorateMethodTypesTaskDef {
 	 * If transformer detects that some type extends the marker, it will make `external` type
 	 * External types are not allowed in most of unobvious cases (for example mapped types) */
 	externalTypes?: string[]
+	/** If enabled, abstract classes won't have decorators */
+	skipAbstractClasses?: boolean
 }
 
 export function isCollectCallsTaskDef(x: unknown): x is CollectToplevelCallsTaskDef {

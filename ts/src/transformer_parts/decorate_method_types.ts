@@ -2,7 +2,7 @@ import {SubTransformer, SubTransformerTransformParams} from "main_transformer"
 import {DecorateMethodTypesTaskDef} from "transformer_config"
 import * as Tsc from "typescript"
 import * as Path from "path"
-import {arrayToPropertyAccessChain, createLiteralOfValue, declarationExtendsMarker, typeHasMarker} from "tsc_tricks"
+import {arrayToPropertyAccessChain, createLiteralOfValue, declarationExtendsMarker, isNodeAbstract, typeHasMarker} from "tsc_tricks"
 import {ToolboxTransformer} from "entrypoint"
 import {addModuleObjectImportsToSourceFile, getReferenceToDeclaration} from "transformer_tricks"
 
@@ -23,6 +23,10 @@ export class DecorateMethodTypesTransformer implements SubTransformer {
 	transform(params: SubTransformerTransformParams): Tsc.SourceFile {
 		let modulesToImport = new Map<string, string>()
 		let modifyClass = (classNode: Tsc.ClassDeclaration, task: DecorateMethodTypesTaskDef): Tsc.ClassDeclaration => {
+			if(task.skipAbstractClasses && isNodeAbstract(Tsc, classNode)){
+				return classNode
+			}
+
 			return Tsc.visitEachChild(classNode, node => {
 				if(!Tsc.isMethodDeclaration(node)){
 					return node

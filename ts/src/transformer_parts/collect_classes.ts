@@ -4,7 +4,7 @@ import {CollectClassesTaskDef, ToolboxTransformerConfig} from "transformer_confi
 import * as Path from "path"
 import * as Tsc from "typescript"
 import {declarationExtendsMarker, getIdentifiersFromVariableDeclarations, isNodeAbstract, isNodeExported, typeIsClasslikeExtendingMarker} from "tsc_tricks"
-import {getImportStatementsText, getSequenceExportStatementText, setsEqual} from "utils"
+import {getImportStatementsText, getSequenceOrMapExportStatementText, setsEqual} from "utils"
 import {writeGeneratedFile} from "transformer_tricks"
 
 type PathToClassInModule = string[]
@@ -103,7 +103,7 @@ export class CollectClassesTransformer implements SubTransformer {
 		let moduleNames = [...task.modules.keys()].sort()
 
 		let importStr = getImportStatementsText(moduleNames, task.def)
-		let exportStr = getSequenceExportStatementText(moduleNames, task.def, task.modules)
+		let exportStr = getSequenceOrMapExportStatementText(moduleNames, task.def, task.modules)
 		writeGeneratedFile(this.toolboxContext, task.def.file, importStr + exportStr)
 	}
 

@@ -3,13 +3,13 @@ import {SubTransformer, SubTransformerTransformParams} from "main_transformer"
 import {CollectTypeofTypeMapTaskDef, ToolboxTransformerConfig} from "transformer_config"
 import * as Path from "path"
 import * as Tsc from "typescript"
-import {isNodeExported, typeHasMarker} from "tsc_tricks"
+import {entityNameToArray, isNodeExported, typeHasMarker} from "tsc_tricks"
 import {getImportStatementsText, setsEqual} from "utils"
 import {NodeReference, getVariableReferenceByName, writeGeneratedFile} from "transformer_tricks"
 
 interface TargetType {
 	pathToType: string[]
-	value: NodeReference | null
+	value: NodeReference
 }
 
 interface ModulesOfTask {
@@ -75,6 +75,9 @@ export class TypeofTypeMapTransformer implements SubTransformer {
 
 				let fullPathToType = [...namePath, node.name.getText()]
 				let valueRef = getVariableReferenceByName(params, firstTypeArg.exprName)
+				if(!valueRef){
+					throw new Error("Cannot refer to value " + entityNameToArray(Tsc, firstTypeArg.exprName).join(".") + " mentioned in module " + params.moduleName + " as " + fullPathToType.join(".") + ". Maybe the value is not exported?")
+				}
 				exportedValueNames[taskIndex].push({
 					pathToType: fullPathToType,
 					value: valueRef
@@ -125,12 +128,7 @@ export class TypeofTypeMapTransformer implements SubTransformer {
 
 	private moduleValuesEquals(a: TargetType[], b: TargetType[]): boolean {
 		function typeToStr(target: TargetType): string {
-			let valuePath: string
-			if(!target.value){
-				valuePath = "null"
-			} else {
-				valuePath = target.value.moduleName + ":" + target.value.identifiers.join(".")
-			}
+			let valuePath = target.value.moduleName + ":" + target.value.identifiers.join(".")
 			return target.pathToType.join("") + "=" + valuePath
 		}
 
@@ -140,49 +138,32 @@ export class TypeofTypeMapTransformer implements SubTransformer {
 	private generateFile(task: ModulesOfTask): void {
 		let importedModules = [] as string[]
 		task.modules.forEach(targets => targets.forEach(target => {
-			if(target.value){
-				importedModules.push(target.value.moduleName)
-			}
+			importedModules.push(target.value.moduleName)
 		}))
 		importedModules = [...new Set(importedModules)].sort()
 		let importedModuleMap = new Map(importedModules.map((x, i) => [x, i]))
 
 		let importStr = getImportStatementsText(importedModules, task.def)
 
-		let KVs = new Map<string, string[]>()
+		let KVs = new Map<string, string>()
 		task.modules.forEach((targets, typeModuleName) => targets.forEach(target => {
-			let key = task.def.typeNaming === "last_identifier"
-				? target.pathToType[target.pathToType.length - 1]!
-				: task.def.typeNaming === "all_identifiers"
-					? target.pathToType.join(".")
-					: typeModuleName + ":" + target.pathToType.join(".")
+			let key = typeModuleName + ":" + target.pathToType.join(".")
 			key = JSON.stringify(key)
 
-			let value = "null"
-			if(target.value){
-				let identifierStr = target.value.identifiers
-					.map(x => "[" + JSON.stringify(x) + "]")
-					.join("")
-				let moduleIndex = importedModuleMap.get(target.value.moduleName)!
-				value = "_" + moduleIndex + identifierStr
-			}
+			let identifierStr = target.value.identifiers
+				.map(x => "[" + JSON.stringify(x) + "]")
+				.join("")
+			let moduleIndex = importedModuleMap.get(target.value.moduleName)!
+			let value = "_" + moduleIndex + identifierStr
 
-			let oldValue = KVs.get(key)
-			if(oldValue){
-				oldValue.push(value)
-			} else {
-				KVs.set(key, [value])
+			if(KVs.has(key)){
+				throw new Error("More than one value is present for identifier " + key)
 			}
+			KVs.set(key, value)
 		}))
 
-		let KVarr = [...KVs.entries()].map(([k, v]) => {
-			let valueStr = v.length === 1
-				? v[0]!
-				: task.def.onDuplicates === "array"
-					? "[" + v.join(", ") + "]"
-					: "null"
-			return [k, valueStr] as [string, string]
-		}).sort((a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : a[1] < b[1] ? -1 : 1)
+		let KVarr = [...KVs.entries()]
+			.sort((a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : a[1] < b[1] ? -1 : 1)
 
 		let exportTypeStr: string
 		let exportValueStr: string

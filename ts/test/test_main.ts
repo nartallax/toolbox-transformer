@@ -79,7 +79,6 @@ test("main test", async assert => {
 	"/typeof_type_map/dto:OrderE": _0["dtoX"],
 	"/typeof_type_map/dto:OrderF": _1["dtoBase"],
 	"/typeof_type_map/dto:OrderJ": _1["dtoBase"],
-	"/typeof_type_map/dto:OrderL": null,
 	"/typeof_type_map/dto_types:OrderH": _0["DtoTypes"]["a"],
 	"/typeof_type_map/dto_types:OrderK": _0["dtoX"],
 	"/typeof_type_map/dto_types:OrderL": _1["dtoBase"],
