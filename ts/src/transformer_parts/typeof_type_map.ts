@@ -57,11 +57,7 @@ export class TypeofTypeMapTransformer implements SubTransformer {
 			if(!(Tsc.isExpressionWithTypeArguments(type) || Tsc.isTypeReferenceNode(type)) || !type.typeArguments){
 				return
 			}
-
 			const firstTypeArg = type.typeArguments[0]
-			if(!firstTypeArg || !Tsc.isTypeQueryNode(firstTypeArg)){
-				return
-			}
 
 			let typeOfType = params.typechecker.getTypeAtLocation(type)
 			this.tasks.forEach((task, taskIndex) => {
@@ -71,6 +67,10 @@ export class TypeofTypeMapTransformer implements SubTransformer {
 
 				if(!typeHasMarker(Tsc, params.typechecker, typeOfType, task.def.markerName)){
 					return
+				}
+
+				if(!firstTypeArg || !Tsc.isTypeQueryNode(firstTypeArg)){
+					throw new Error("Expected expression to have typeof type argument: " + type.getText())
 				}
 
 				let fullPathToType = [...namePath, node.name.getText()]
