@@ -139,13 +139,19 @@ export class MainTransformer {
 			}
 		}
 
+		let wasErrors = false
 		this.allTransformers.forEach(transformer => {
 			try {
 				params.file = transformer.transform(params)
 			} catch(e){
+				wasErrors = true
 				console.error("Toolbox transformer part (" + transformer + ") throws error on file " + params.file.fileName + " : " + (e as Error).stack)
 			}
 		})
+
+		if(wasErrors){
+			throw new Error("One of sub-transformers threw an error. Transformation failed.")
+		}
 
 		return params.file
 	}
