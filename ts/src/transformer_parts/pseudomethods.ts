@@ -62,7 +62,7 @@ export class PseudomethodsTransformer implements SubTransformer {
 
 		let result = Tsc.visitEachChild(params.file, visitor, params.transformContext)
 
-		result = addModuleObjectImportsToSourceFile(result, moduleNames)
+		result = addModuleObjectImportsToSourceFile(params, result, moduleNames)
 
 		return result
 	}

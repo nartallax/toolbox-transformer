@@ -134,12 +134,17 @@ export function writeGeneratedFile(context: ToolboxTransformer.TransformerProjec
 
 /** Prepend new import declarations into module file
  * @param moduleNames import path -> identifier of module object within file */
-export function addModuleObjectImportsToSourceFile(file: Tsc.SourceFile, moduleNames: Map<string, string>): Tsc.SourceFile {
+export function addModuleObjectImportsToSourceFile(params: SubTransformerTransformParams, file: Tsc.SourceFile, moduleNames: Map<string, string>): Tsc.SourceFile {
 	if(moduleNames.size < 1){
 		return file
 	}
+	let selfModuleName = params.modulePathResolver.getCanonicalModuleName(file.fileName)
 	let imports = [] as Tsc.ImportDeclaration[]
 	moduleNames.forEach((importedName, pathName) => {
+		let canonicalName = params.modulePathResolver.resolveModuleDesignator(pathName, file.fileName)
+		if(canonicalName === selfModuleName){
+			throw new Error("Cannot add import to module " + selfModuleName + " into itself.")
+		}
 		imports.push(Tsc.factory.createImportDeclaration(
 			undefined,
 			undefined,

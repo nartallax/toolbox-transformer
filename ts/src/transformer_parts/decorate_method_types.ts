@@ -80,7 +80,7 @@ export class DecorateMethodTypesTransformer implements SubTransformer {
 		}
 
 		let result = Tsc.visitEachChild(params.file, node => visitor(node), params.transformContext)
-		result = addModuleObjectImportsToSourceFile(result, modulesToImport)
+		result = addModuleObjectImportsToSourceFile(params, result, modulesToImport)
 		return result
 	}
 }
