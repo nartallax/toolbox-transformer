@@ -64,7 +64,7 @@ export class DecorateMethodTypesTransformer implements SubTransformer {
 
 		let visitor = (node: Tsc.Node): Tsc.VisitResult<Tsc.Node> => {
 			if(Tsc.isModuleDeclaration(node) && node.body){
-				return Tsc.visitEachChild(node.body, subnode => visitor(subnode), params.transformContext)
+				return Tsc.visitEachChild(node, subnode => visitor(subnode), params.transformContext)
 			}
 
 			if(Tsc.isClassDeclaration(node)){
