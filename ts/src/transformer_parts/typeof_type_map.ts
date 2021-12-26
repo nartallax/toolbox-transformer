@@ -5,11 +5,11 @@ import * as Path from "path"
 import * as Tsc from "typescript"
 import {isNodeExported, typeHasMarker} from "tsc_tricks"
 import {getImportStatementsText, setsEqual} from "utils"
-import {ExportedValueReference, getVariableReferenceByName, writeGeneratedFile} from "transformer_tricks"
+import {NodeReference, getVariableReferenceByName, writeGeneratedFile} from "transformer_tricks"
 
 interface TargetType {
 	pathToType: string[]
-	value: ExportedValueReference | null
+	value: NodeReference | null
 }
 
 interface ModulesOfTask {
@@ -53,27 +53,26 @@ export class TypeofTypeMapTransformer implements SubTransformer {
 		// task index -> exported names
 		let exportedValueNames = this.tasks.map(() => [] as TargetType[])
 
-		let tryProcessType = (node: Tsc.InterfaceDeclaration | Tsc.TypeAliasDeclaration, type: Tsc.TypeNode, namePath: ReadonlyArray<string>) => {
-			console.log("Processing type " + type.getText() + " of " + node.getText())
+		let tryProcessType = (node: Tsc.InterfaceDeclaration | Tsc.TypeAliasDeclaration, type: Tsc.TypeNode, namePath: ReadonlyArray<string>, exported: boolean) => {
 			if(!(Tsc.isExpressionWithTypeArguments(type) || Tsc.isTypeReferenceNode(type)) || !type.typeArguments){
-				console.log("Is not type referencing")
 				return
 			}
 
 			const firstTypeArg = type.typeArguments[0]
 			if(!firstTypeArg || !Tsc.isTypeQueryNode(firstTypeArg)){
-				console.log("No type arg/is not query")
 				return
 			}
 
 			let typeOfType = params.typechecker.getTypeAtLocation(type)
 			this.tasks.forEach((task, taskIndex) => {
-				if(!typeHasMarker(Tsc, params.typechecker, typeOfType, task.def.markerName)){
-					console.log("No marker")
+				if(task.def.exportedTypesOnly && !exported){
 					return
 				}
 
-				console.log("Adding!")
+				if(!typeHasMarker(Tsc, params.typechecker, typeOfType, task.def.markerName)){
+					return
+				}
+
 				let fullPathToType = [...namePath, node.name.getText()]
 				let valueRef = getVariableReferenceByName(params, firstTypeArg.exprName)
 				exportedValueNames[taskIndex].push({
@@ -83,31 +82,29 @@ export class TypeofTypeMapTransformer implements SubTransformer {
 			})
 		}
 
-		let visitor = (node: Tsc.Node, namePath: string[]): Tsc.VisitResult<Tsc.Node> => {
-			if(!isNodeExported(Tsc, node)){
-				return node
-			}
+		let visitor = (node: Tsc.Node, namePath: string[], exported: boolean): Tsc.VisitResult<Tsc.Node> => {
+			exported = exported && isNodeExported(Tsc, node)
 
 			if(Tsc.isTypeAliasDeclaration(node)){
-				tryProcessType(node, node.type, namePath)
+				tryProcessType(node, node.type, namePath, exported)
 			} else if(Tsc.isInterfaceDeclaration(node)){
 				if(node.heritageClauses){
 					for(let clause of node.heritageClauses){
 						clause.types.forEach(type => {
-							tryProcessType(node, type, namePath)
+							tryProcessType(node, type, namePath, exported)
 						})
 					}
 				}
 			} else if(Tsc.isModuleDeclaration(node)){
 				if(node.body){
-					Tsc.visitEachChild(node.body, subnode => visitor(subnode, [...namePath, node.name.text]), params.transformContext)
+					Tsc.visitEachChild(node.body, subnode => visitor(subnode, [...namePath, node.name.text], exported), params.transformContext)
 				}
 			}
 
 			return node
 		}
 
-		Tsc.visitEachChild(params.file, node => visitor(node, []), params.transformContext)
+		Tsc.visitEachChild(params.file, node => visitor(node, [], true), params.transformContext)
 
 		this.tasks.forEach((task, taskIndex) => {
 			let newList = exportedValueNames[taskIndex]

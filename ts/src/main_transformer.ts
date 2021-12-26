@@ -1,5 +1,5 @@
 import {ToolboxTransformer} from "entrypoint"
-import {isCollectClassesTaskDef, isCollectCallsTaskDef, ToolboxTransformerConfig, isCollectValuesTaskDef, isPseudovariableTaskDef, isRemoveCallsTaskDef, isPseudomethodTaskDef, isCollectTypeofTypeMapTaskDef} from "transformer_config"
+import {isCollectClassesTaskDef, isCollectCallsTaskDef, ToolboxTransformerConfig, isCollectValuesTaskDef, isPseudovariableTaskDef, isRemoveCallsTaskDef, isPseudomethodTaskDef, isCollectTypeofTypeMapTaskDef, isDecorateMethodTypesTaskDef} from "transformer_config"
 import * as Tsc from "typescript"
 import * as Path from "path"
 import {CollectToplevelCallsTransformer} from "transformer_parts/collect_toplevel_calls"
@@ -12,6 +12,7 @@ import {ModuleImportsCache} from "imports_cache"
 import {ModuleImportStructure} from "tsc_tricks"
 import {TypeofTypeMapTransformer} from "transformer_parts/typeof_type_map"
 import {ModulePathResolver, ModulePathResolverImpl} from "module_path_resolver"
+import {DecorateMethodTypesTransformer} from "transformer_parts/decorate_method_types"
 
 
 export class MainTransformer {
@@ -67,6 +68,12 @@ export class MainTransformer {
 			let typeofTypeMapTasks = toolboxContext.params.tasks.filter(isCollectTypeofTypeMapTaskDef)
 			if(typeofTypeMapTasks.length > 0){
 				let transformer = new TypeofTypeMapTransformer(typeofTypeMapTasks, toolboxContext)
+				this.allTransformers.push(transformer)
+			}
+
+			let decorateMethodTypeTask = toolboxContext.params.tasks.filter(isDecorateMethodTypesTaskDef)
+			if(decorateMethodTypeTask.length > 0){
+				let transformer = new DecorateMethodTypesTransformer(decorateMethodTypeTask)
 				this.allTransformers.push(transformer)
 			}
 

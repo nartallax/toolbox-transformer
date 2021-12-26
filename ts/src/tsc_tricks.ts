@@ -137,14 +137,50 @@ export function createLiteralOfValue(tsc: typeof Tsc, value: unknown): Tsc.Expre
 		case "string": return tsc.factory.createStringLiteral(value)
 		case "number": return tsc.factory.createNumericLiteral(value)
 		case "boolean": return value ? tsc.factory.createTrue() : tsc.factory.createFalse()
-		case "object":
+		case "object":{
 			if(value === null){
 				return tsc.factory.createNull()
 			}
 
+			/*
+			let node = value as Tsc.Node
+			// can I somehow check if object is node in some different way?
+			// typescript don't expose any class related to nodes, so no instanceof checks
+			// also completely unchecked cast to expression
+			if(typeof(node.getSourceFile) === "function" && tsc.isSourceFile(node.getSourceFile())){
+				return node as Tsc.Expression
+			}
+			*/
 			if(Array.isArray(value)){
 				return tsc.factory.createArrayLiteralExpression(
 					value.map(item => createLiteralOfValue(tsc, item))
+				)
+			}
+
+			if(value instanceof Set){
+				let valExprs = [] as Tsc.Expression[]
+				for(let val of value.values()){
+					valExprs.push(createLiteralOfValue(tsc, val))
+				}
+				return tsc.factory.createNewExpression(
+					tsc.factory.createIdentifier("Set"),
+					undefined,
+					[tsc.factory.createArrayLiteralExpression(valExprs, false)]
+				)
+			}
+
+			if(value instanceof Map){
+				let valExprs = [] as Tsc.Expression[]
+				for(let [k, v] of value.entries()){
+					valExprs.push(tsc.factory.createArrayLiteralExpression([
+						createLiteralOfValue(tsc, k),
+						createLiteralOfValue(tsc, v)
+					]))
+				}
+				return tsc.factory.createNewExpression(
+					tsc.factory.createIdentifier("Map"),
+					undefined,
+					[tsc.factory.createArrayLiteralExpression(valExprs, false)]
 				)
 			}
 
@@ -154,7 +190,7 @@ export function createLiteralOfValue(tsc: typeof Tsc, value: unknown): Tsc.Expre
 					return tsc.factory.createPropertyAssignment(propName, createLiteralOfValue(tsc, propValue))
 				})
 			)
-
+		}
 		default: throw new Error("Cannot create literal of type " + typeof(value))
 	}
 }

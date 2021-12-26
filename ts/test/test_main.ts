@@ -1,5 +1,6 @@
 import {test} from "@nartallax/clamsensor"
 import {Imploder} from "@nartallax/imploder"
+import {ToolboxTransformer} from "entrypoint"
 import {promises as Fs} from "fs"
 import * as Path from "path"
 
@@ -77,12 +78,52 @@ test("main test", async assert => {
 	"/typeof_type_map/dto:OrderD": _0["DtoTypes"]["a"],
 	"/typeof_type_map/dto:OrderE": _0["dtoX"],
 	"/typeof_type_map/dto:OrderF": _1["dtoBase"],
+	"/typeof_type_map/dto:OrderJ": _1["dtoBase"],
 	"/typeof_type_map/dto:OrderL": null,
 	"/typeof_type_map/dto_types:OrderH": _0["DtoTypes"]["a"],
 	"/typeof_type_map/dto_types:OrderK": _0["dtoX"],
 	"/typeof_type_map/dto_types:OrderL": _1["dtoBase"],
 	"/typeof_type_map/dto_types:OrderM": _1["dtoBase"],
 }`)
+	}
+
+	{
+		let file = await Fs.readFile(Path.resolve(outDir, "decorate_methods/methods_to_be_decorated.js"), "utf-8")
+		let line = file.split("\n").find(x => x.match(/\.methodTypes\(/))!
+		assert(line).isTruthy()
+		let arg = line.match(/\.methodTypes\((.*?)\)$/)![1]!
+		assert(arg).isTruthy()
+		let parsedArgsArr = eval(arg) as ToolboxTransformer.ParameterDescription[]
+		assert(parsedArgsArr).equalsTo([
+			{name: "_a", type: {type: "number"}},
+			{name: "_b", type: {type: "object", properties: {id: {type: "number"}, logs: {type: "object", properties: {isLogs: {type: "constant", value: true}}}}}},
+			{name: "_bb", type: {type: "tuple", valueTypes: [{type: "number"}, {type: "number"}, {type: "rest", valueType: {type: "string"}}]}},
+			{name: "_bbb", type: {type: "tuple", valueTypes: [{type: "number"}, {type: "number"}]}},
+			{name: "_bbbb", type: {type: "tuple", valueTypes: [{type: "number"}, {type: "number"}, {type: "string", optional: true}]}},
+			{name: "_bbbbb", type: {type: "tuple", valueTypes: [{type: "number"}, {type: "number"}, {type: "string", optional: true}, {type: "rest", valueType: {type: "boolean"}}]}},
+			{name: "_bbbbbb", type: {type: "tuple", valueTypes: [{type: "number"}, {type: "number"}, {type: "rest", valueType: {type: "string"}}, {type: "number"}]}},
+			{name: "_bbbbbbb", type: {type: "tuple", valueTypes: [{type: "number"}, {type: "number"}]}},
+			{name: "_bbbbbbbb", type: {type: "tuple", valueTypes: [{type: "number", optional: true}, {type: "number", optional: true}, {type: "rest", valueType: {type: "string"}}]}},
+			{name: "_bbbbbbbbb", type: {type: "tuple", valueTypes: [{type: "number", optional: true}, {type: "number", optional: true}, {type: "rest", valueType: {type: "string"}}]}},
+			{name: "_c", type: {type: "union", types: [{type: "string"}, {type: "constant_union", value: new Set([null, false])}]}},
+			{name: "_cc", type: {type: "array", valueType: {type: "union", types: [{type: "number"}, {type: "string"}]}}},
+			{name: "_ccc", type: {type: "array", valueType: {type: "union", types: [{type: "number"}, {type: "string"}]}}},
+			{name: "_cccc", type: {type: "object", properties: {value: {type: "number"}}}},
+			{name: "_ccccc", type: {type: "object", properties: {id: {type: "string"}}}},
+			{name: "_cccccc", type: {type: "object", properties: {value: {type: "number"}}}},
+			{name: "_ccccccc", type: {type: "object", properties: {a: {type: "number"}, b: {type: "string"}}}},
+			{name: "_z", type: {type: "object", properties: {}, index: {valueType: {type: "number"}}}},
+			{name: "_zz", type: {type: "object", properties: {a: {type: "number"}, b: {type: "number"}, c: {type: "number"}, d: {type: "number"}}}},
+			{name: "_zzz", type: {type: "object", properties: {id: {type: "union", types: [{type: "number"}, {type: "constant", value: "niet"}], optional: true}, logs: {type: "union", types: [{type: "object", properties: {isLogs: {type: "constant", value: true}}}, {type: "constant", value: "niet"}], optional: true}}}},
+			{name: "_zzzz", type: {type: "object", properties: {id: {type: "number"}, logs: {type: "object", properties: {isLogs: {type: "constant", value: true}}}, isGood: {type: "constant", value: true}, isGoodOrder: {type: "constant", value: true}}}},
+			{name: "_zzzzz", type: {type: "object", properties: {id: {type: "union", types: [{type: "number"}, {type: "constant", value: "niet"}], optional: true}, logs: {type: "union", types: [{type: "object", properties: {isLogs: {type: "constant", value: true}}}, {type: "constant", value: "niet"}], optional: true}, isGood: {type: "constant_union", value: new Set([true, "niet"]), optional: true}, isGoodOrder: {type: "constant_union", value: new Set([true, "niet"]), optional: true}}}},
+			{name: "_zzzzzz", type: {type: "object", properties: {id: {type: "union", types: [{type: "number"}, {type: "constant", value: "niet"}], optional: true}, logs: {type: "union", types: [{type: "object", properties: {isLogs: {type: "constant", value: true}}}, {type: "constant", value: "niet"}], optional: true}}}},
+			{name: "_zzzzzzz", type: {type: "object", properties: {isLogs: {type: "constant_union", value: new Set([true, "niet"]), optional: true}}}},
+			{name: "_e", type: {type: "external", name: "/decorate_methods/methods_to_be_decorated:ExternalOrder"}},
+			{name: "_ee", type: {type: "external", name: "/decorate_methods/methods_to_be_decorated:ExternalOrderAsType"}},
+			{name: "_d", type: {type: "union", types: [{type: "boolean"}, {type: "constant", value: "nope"}]}, optional: true},
+			{name: "_f", type: {type: "union", types: [{type: "object", properties: {id: {type: "number"}}}, {type: "constant", value: true}]}, optional: true}
+		])
 	}
 
 })

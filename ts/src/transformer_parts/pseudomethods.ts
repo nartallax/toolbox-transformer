@@ -1,5 +1,6 @@
 import {SubTransformer, SubTransformerTransformParams} from "main_transformer"
 import {PseudomethodTaskDef} from "transformer_config"
+import {addModuleObjectImportsToSourceFile} from "transformer_tricks"
 import {arrayToPropertyAccessChain, entityNameToArray} from "tsc_tricks"
 import * as Tsc from "typescript"
 
@@ -61,32 +62,9 @@ export class PseudomethodsTransformer implements SubTransformer {
 
 		let result = Tsc.visitEachChild(params.file, visitor, params.transformContext)
 
-		result = this.addImports(result, moduleNames)
+		result = addModuleObjectImportsToSourceFile(result, moduleNames)
 
 		return result
-	}
-
-	/** Prepend new import declarations into module file */
-	private addImports(file: Tsc.SourceFile, moduleNames: Map<string, string>): Tsc.SourceFile {
-		if(moduleNames.size < 1){
-			return file
-		}
-		let imports = [] as Tsc.ImportDeclaration[]
-		moduleNames.forEach((importedName, pathName) => {
-			imports.push(Tsc.factory.createImportDeclaration(
-				undefined,
-				undefined,
-				Tsc.factory.createImportClause(false, undefined, Tsc.factory.createNamespaceImport(
-					Tsc.factory.createIdentifier(importedName)
-				)),
-				Tsc.factory.createStringLiteral(pathName)
-			))
-		})
-
-		return Tsc.factory.updateSourceFile(file, [
-			...imports,
-			...file.statements
-		])
 	}
 
 	/** Check if this node is call expression of pseudomodule, and return related info if so

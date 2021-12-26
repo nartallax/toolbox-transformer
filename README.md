@@ -316,3 +316,45 @@ Usage:
 
 	// this will do the same
 	export interface BoundType2 extends Binder<typeof myValue>{}
+
+### Add decorator to methods of marked classes with type information
+
+Use-case: API method input data validation
+
+Configuration (task):
+
+	{
+		"type":"decorate_method_types", 
+		"markerName": "MY_API_CLASS",
+		"decoratorName":"methodTypes",
+		"importDecoratorFrom":"decorate_methods/method_decorator",
+		"externalTypes": ["THIS_IS_EXTERNAL_TYPE"]
+	}
+
+Usage:
+
+	// declare the decorator like this:
+	export function methodTypes(types: ToolboxTransformer.ParameterDefinition[]): (target: unknown, propertyKey: string) => void {
+		return () => {
+			// ...whatever
+		}
+	}
+
+	// declare marker interface
+	export interface MY_API_CLASS {}
+
+	// example class. decorator invocation will be added to all methods of the class
+	export class MyClass implements MY_API_CLASS {
+		action(order: Order, count: number): string { ... }
+	}
+
+	// marker for external types
+	interface THIS_IS_EXTERNAL_TYPE {}
+	
+	// declaration of marked external types won't result in "shape" of the object in type descriptions
+	// name of the declaration will be used instead in "external" type description
+	interface Order extends THIS_IS_EXTERNAL_TYPE {
+		id: number
+	}
+
+Caveat: when method references structure (interface/type) that is defined in separate file, the structure is "copied" into the decorator invocation. If you run typescript compiler in watch mode and edit structure, outdated structure will be stored in decorator invocation (that is, it won't update by itself, you need to trigger file build to update it). It's not a big deal, as you're already should build release builds from scratch; just an inconvenience.  

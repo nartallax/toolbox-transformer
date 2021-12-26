@@ -76,7 +76,84 @@ export namespace ToolboxTransformer {
 		code?: number
 	}
 
+	export interface ParameterDescription {
+		name: string
+		type: TypeDescription
+		optional?: boolean
+	}
+
+	export type TypeDescription = PlainTypeDescription
+	| CompositeTypeDescription
+	| ConstantTypeDescription
+	| ConstantUnionTypeDescription
+	| ExternalTypeDescription
+	| ArrayTypeDescription
+	| ObjectTypeDescription
+	| TupleTypeDescription
+
+	export interface PlainTypeDescription {
+		type: "string" | "number" | "boolean"
+	}
+
+	export interface CompositeTypeDescription {
+		type: "union" | "intersection"
+		types: TypeDescription[]
+	}
+
+	export interface ConstantTypeDescription {
+		type: "constant"
+		value: unknown // in fact = string | number | boolean | null
+	}
+
+	/** A set of constant values. Value matches type if it equals any of the constant values
+	 * Logically it's the same of several ConstantTypeDescriptions in union
+	 * Introduced to make checks more optimized, and also to reduce generated code size
+	 * That is, it's very easy to produce large constant union types,
+	 * but storing each of them as individual type is just bad */
+	export interface ConstantUnionTypeDescription {
+		type: "constant_union"
+		value: Set<unknown>
+	}
+
+	export interface ExternalTypeDescription {
+		type: "external"
+		name: string
+	}
+
+	export interface ArrayTypeDescription {
+		type: "array"
+		valueType: TypeDescription
+	}
+
+	export type ObjectPropertyTypeDescription = TypeDescription & {optional?: boolean}
+	export interface ObjectTypeDescription {
+		type: "object"
+		properties: Record<string, ObjectPropertyTypeDescription>
+		index?: {
+			// only string index is allowed
+			valueType: TypeDescription
+		}
+	}
+
+	export type TupleElementTypeDescription = (TypeDescription | RestTypeDescription) & {optional?: boolean}
+	export interface TupleTypeDescription {
+		type: "tuple"
+		// keep in mind `rest` parameter
+		// best way to match value to this type descriptions is to approach rest from start,
+		// then from the end, then try to match all values that left to the rest parameter type
+		// I guess that's why typescript allows no more than rest parameter per tuple
+		valueTypes: TupleElementTypeDescription[]
+	}
+
+	// it's just for tuples. not included in general type description type
+	export interface RestTypeDescription {
+		type: "rest"
+		valueType: TypeDescription
+	}
+
+
 }
+
 
 export default ToolboxTransformer.makeImplodableTransformer((toolboxContext: ToolboxTransformer.TransformerProjectContext<ToolboxTransformerConfig>): Imploder.CustomTransformerFactory => {
 

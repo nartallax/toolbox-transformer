@@ -29,7 +29,8 @@
                     {"type":"pseudovariable", "markerName": "MODULE_NAME_MARKER", "valueType": "module_name" },
                     {"type":"remove_calls","markerName": "REMOVE_THIS_FUNCTION_CALL"},
                     {"type":"pseudomethod","markerName": "PSEUDOMETHOD"},
-                    {"type":"collect_typeof_type_map", "markerName": "DTO_MARKER_TYPE","file": "generated/dto_source_list_map.ts", "collectionType": "readonly_object", "exportedName": "dtoSourceListMap"}
+                    {"type":"collect_typeof_type_map", "markerName": "DTO_MARKER_TYPE","file": "generated/dto_source_list_map.ts", "collectionType": "readonly_object", "exportedName": "dtoSourceListMap"},
+                    {"type":"decorate_method_types", "markerName": "MY_API_CLASS","decoratorName":"methodTypes","importDecoratorFrom":"decorate_methods/method_decorator","externalTypes": ["THIS_IS_EXTERNAL_TYPE"]}
                 ]
             }
         ],
@@ -75,6 +76,7 @@
         "noUnusedLocals": true,
         "noUnusedParameters": true,
         "strictFunctionTypes": true,
-        "strictNullChecks": true
+        "strictNullChecks": true,
+        "experimentalDecorators": true
     }
 }
