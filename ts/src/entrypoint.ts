@@ -27,10 +27,10 @@ export namespace ToolboxTransformer {
 
 	/** A classes of trick collections for a lot of different cases
 	 * Use whatever suits you */
-	export const AstTricks = TscAstTricks
-	export const CheckerTricks = TscCheckerTricks
-	export const TransformerTricks = TscTransformerTricks
-	export const ToolboxTricks = ToolboxTransformerTricks
+	export class AstTricks extends TscAstTricks { }
+	export class CheckerTricks extends TscCheckerTricks {}
+	export class TransformerTricks extends TscTransformerTricks {}
+	export class ToolboxTricks extends ToolboxTransformerTricks {}
 
 	export type TransformerFactoryMaker<T> = (opts: ToolboxTransformer.TransformerProjectContext<T>) => Imploder.CustomTransformerFactory
 
