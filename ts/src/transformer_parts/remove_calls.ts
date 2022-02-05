@@ -1,15 +1,16 @@
 import {RemoveCallsTaskDef} from "transformer_config"
 import * as Tsc from "typescript"
-import {typeHasMarker} from "tsc_tricks"
 import {SubTransformer, SubTransformerTransformParams} from "main_transformer"
 
-export class RemoveCallsTransformer implements SubTransformer {
+export class RemoveCallsTransformer extends SubTransformer {
 
 	toString(): string {
 		return "RemoveCalls"
 	}
 
-	constructor(private readonly tasks: RemoveCallsTaskDef[]) {}
+	constructor(private readonly tasks: RemoveCallsTaskDef[]) {
+		super()
+	}
 
 	transform(params: SubTransformerTransformParams): Tsc.SourceFile {
 
@@ -18,7 +19,7 @@ export class RemoveCallsTransformer implements SubTransformer {
 				let type = params.typechecker.getTypeAtLocation(node)
 				for(let i = 0; i < this.tasks.length; i++){
 					let task = this.tasks[i]
-					if(typeHasMarker(Tsc, params.typechecker, type, task.markerName)){
+					if(this.tricks.typeHasMarker(type, task.markerName)){
 						return Tsc.factory.createVoidZero()
 					}
 				}

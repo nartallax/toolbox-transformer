@@ -1,21 +1,20 @@
-import {Imploder} from "@nartallax/imploder"
-import {ModuleImportStructure, parseModuleFileImports} from "tsc_tricks"
+import {ModulePathResolver} from "module_path_resolver"
+import {ModuleImportStructure, TscTransformerTricks} from "tricks/transformer_tricks"
 import * as Tsc from "typescript"
 
 /** Storage for import data about modules
  * This data can be shared across multiple transformers */
 export class ModuleImportsCache {
 
-	constructor(private tsc: typeof Tsc, private imploder?: Imploder.Context) {}
+	constructor(
+		private readonly tsc: typeof Tsc,
+		private readonly checker: () => Tsc.TypeChecker,
+		private readonly modulePathResolver: () => ModulePathResolver) {}
 
 	private moduleImportCache = new Map<string, ModuleImportStructure>()
 
 	private keyOf(file: Tsc.SourceFile): string {
-		let result = file.fileName
-		if(this.imploder){
-			result = this.imploder.modulePathResolver.getCanonicalModuleName(result)
-		}
-		return result
+		return this.modulePathResolver().getCanonicalModuleName(file.fileName)
 	}
 
 	getImportsOf(file: Tsc.SourceFile, transformContext: Tsc.TransformationContext): ModuleImportStructure {
@@ -25,7 +24,7 @@ export class ModuleImportsCache {
 			return cached
 		}
 
-		let result = parseModuleFileImports(this.tsc, file, transformContext)
+		let result = new TscTransformerTricks(this.tsc, this.checker(), transformContext).parseModuleFileImports(file)
 		this.moduleImportCache.set(key, result)
 		return result
 	}

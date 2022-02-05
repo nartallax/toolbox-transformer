@@ -18,7 +18,6 @@ export type ToolboxTransformerTaskDefinition = CollectToplevelCallsTaskDef
 | RemoveCallsTaskDef
 | PseudomethodTaskDef
 | CollectTypeofTypeMapTaskDef
-| DecorateMethodTypesTaskDef
 
 /** This task will find all modules that have top-level calls of function returning certain type of value,
  * and generate imports of all these modules in a single file */
@@ -122,25 +121,6 @@ export interface CollectTypeofTypeMapTaskDef {
 	exportedTypesOnly?: boolean
 }
 
-/** This task will add decorators to all public methods of classes that has marker
- * These decorators will receive information about types of parameters the method takes */
-export interface DecorateMethodTypesTaskDef {
-	type: "decorate_method_types"
-	/** Name of interface/class the class must extend to trigger the transformer */
-	markerName: string
-	/** Name of decorator inside @field importDecoratorFrom module */
-	decoratorName: string
-	/** Name of module from which decorator will be imported
-	 * Actual value depends on your tsconfig's paths and rootdirs configuration */
-	importDecoratorFrom: string
-	/** Array of markers.
-	 * If transformer detects that some type extends the marker, it will make `external` type
-	 * External types are not allowed in most of unobvious cases (for example mapped types) */
-	externalTypes?: string[]
-	/** If enabled, abstract classes won't have decorators */
-	skipAbstractClasses?: boolean
-}
-
 export function isCollectCallsTaskDef(x: unknown): x is CollectToplevelCallsTaskDef {
 	return !!x && typeof(x) === "object" && (x as CollectToplevelCallsTaskDef).type === "collect_toplevel_calls"
 }
@@ -167,8 +147,4 @@ export function isPseudomethodTaskDef(x: unknown): x is PseudomethodTaskDef {
 
 export function isCollectTypeofTypeMapTaskDef(x: unknown): x is CollectTypeofTypeMapTaskDef {
 	return !!x && typeof(x) === "object" && (x as CollectTypeofTypeMapTaskDef).type === "collect_typeof_type_map"
-}
-
-export function isDecorateMethodTypesTaskDef(x: unknown): x is DecorateMethodTypesTaskDef {
-	return !!x && typeof(x) === "object" && (x as DecorateMethodTypesTaskDef).type === "decorate_method_types"
 }

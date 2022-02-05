@@ -1,14 +1,13 @@
 import {SubTransformer, SubTransformerTransformParams} from "main_transformer"
 import {PseudomethodTaskDef} from "transformer_config"
-import {addModuleObjectImportsToSourceFile} from "transformer_tricks"
-import {arrayToPropertyAccessChain, entityNameToArray} from "tsc_tricks"
 import * as Tsc from "typescript"
 
-export class PseudomethodsTransformer implements SubTransformer {
+export class PseudomethodsTransformer extends SubTransformer {
 
 	private markers: Set<string>
 
 	constructor(tasks: PseudomethodTaskDef[]) {
+		super()
 		this.markers = new Set(tasks.map(x => x.markerName))
 	}
 
@@ -43,7 +42,7 @@ export class PseudomethodsTransformer implements SubTransformer {
 					}
 
 					let fullReferenceExpressionArr = [unicalizedModuleName, ...referenceExpressionTail, "call"]
-					let expr = arrayToPropertyAccessChain(Tsc, fullReferenceExpressionArr)
+					let expr = this.tricks.arrayToPropertyAccessChain(fullReferenceExpressionArr)
 					node = Tsc.factory.createCallExpression(
 						expr,
 						node.typeArguments,
@@ -62,7 +61,7 @@ export class PseudomethodsTransformer implements SubTransformer {
 
 		let result = Tsc.visitEachChild(params.file, visitor, params.transformContext)
 
-		result = addModuleObjectImportsToSourceFile(params, result, moduleNames)
+		result = this.tricks.addModuleObjectImportsToSourceFile(result, moduleNames)
 
 		return result
 	}
@@ -109,7 +108,7 @@ export class PseudomethodsTransformer implements SubTransformer {
 			throw new Error("Following symbol has no declarations (but expected to have at least one): " + symbol.getEscapedName())
 		}
 
-		let chainIdentifiers = entityNameToArray(Tsc, importedExpression)
+		let chainIdentifiers = this.tricks.entityNameToArray(importedExpression)
 
 		for(let decl of decls){
 			let sourceFile = decl.getSourceFile()

@@ -1,8 +1,7 @@
 import {ToolboxTransformer} from "entrypoint"
-import {PseudovariableTaskDef, ToolboxTransformerConfig} from "transformer_config"
+import {PseudovariableTaskDef} from "transformer_config"
 import * as Path from "path"
 import * as Tsc from "typescript"
-import {createLiteralOfValue, typeHasMarker} from "tsc_tricks"
 import {SubTransformer, SubTransformerTransformParams} from "main_transformer"
 
 interface PseudovariableTaskWithValue {
@@ -10,7 +9,7 @@ interface PseudovariableTaskWithValue {
 	getValue(context: SubTransformerTransformParams): Tsc.Expression
 }
 
-export class PseudovariableTransformer implements SubTransformer {
+export class PseudovariableTransformer extends SubTransformer {
 
 	toString(): string {
 		return "Pseudovariable"
@@ -19,7 +18,8 @@ export class PseudovariableTransformer implements SubTransformer {
 	private readonly tasks: PseudovariableTaskWithValue[]
 
 	constructor(tasks: PseudovariableTaskDef[],
-		private readonly toolboxContext: ToolboxTransformer.TransformerProjectContext<ToolboxTransformerConfig>) {
+		private readonly toolboxContext: ToolboxTransformer.TransformerProjectContext) {
+		super()
 
 		this.tasks = tasks.map(task => ({
 			def: task,
@@ -30,9 +30,9 @@ export class PseudovariableTransformer implements SubTransformer {
 	private makeGetValueFunction(def: PseudovariableTaskDef): (context: SubTransformerTransformParams) => Tsc.Expression {
 		switch(def.valueType){
 			case "module_name":
-				return context => createLiteralOfValue(Tsc, context.moduleName)
+				return context => this.tricks.createLiteralOfValue(context.moduleName)
 			case "generation_date_seconds":
-				return () => createLiteralOfValue(Tsc, Date.now() / 1000)
+				return () => this.tricks.createLiteralOfValue(Date.now() / 1000)
 			case "json_file_value":{
 				let filePath = def.file
 				if(!filePath){
@@ -56,7 +56,7 @@ export class PseudovariableTransformer implements SubTransformer {
 					value = value[pathPart]
 					passedPath.push(pathPart)
 				}
-				return () => createLiteralOfValue(Tsc, value)
+				return () => this.tricks.createLiteralOfValue(value)
 			}
 		}
 	}
@@ -84,7 +84,7 @@ export class PseudovariableTransformer implements SubTransformer {
 				let type = params.typechecker.getTypeAtLocation(node)
 				for(let i = 0; i < this.tasks.length; i++){
 					let task = this.tasks[i]
-					if(typeHasMarker(Tsc, params.typechecker, type, task.def.markerName)){
+					if(this.tricks.typeHasMarker(type, task.def.markerName)){
 						return task.getValue(params)
 					}
 				}

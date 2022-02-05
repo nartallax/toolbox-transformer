@@ -1,16 +1,16 @@
 import {Imploder} from "@nartallax/imploder"
 import {ToolboxTransformer} from "entrypoint"
-import * as tsc from "typescript"
-import type * as tsl from "typescript/lib/tsserverlibrary"
+import * as Tsc from "typescript"
+import type * as Tsl from "typescript/lib/tsserverlibrary"
 import * as Path from "path"
 
-function doMakeTransformer<T>(makeFactory: ToolboxTransformer.TransformerFactoryMaker<T>, context: Imploder.Context | tsc.Program, params?: T): Imploder.CustomTransformerFactory {
+function doMakeTransformer<T>(makeFactory: ToolboxTransformer.TransformerFactoryMaker<T>, context: Imploder.Context | Tsc.Program, params?: T): Imploder.CustomTransformerFactory {
 
 	let imploder = isProgram(context) ? undefined : context
 
 	let factoryParams: ToolboxTransformer.TransformerProjectContext<T> = {
 		imploder, params,
-		get program(): tsc.Program {
+		get program(): Tsc.Program {
 			return isProgram(context) ? context : context.compiler.program
 		},
 		get tsconfigPath(): string {
@@ -25,7 +25,7 @@ export function makeImplodableTransformer<T>(makeFactory: ToolboxTransformer.Tra
 	return (context, params) => doMakeTransformer(makeFactory, context, params)
 }
 
-function doMakeServicePlugin(makePlugin: ToolboxTransformer.LanguageServicePluginMaker, libWrap: {typescript: typeof tsc}): {create(info: tsl.server.PluginCreateInfo): tsc.LanguageService} {
+function doMakeServicePlugin(makePlugin: ToolboxTransformer.LanguageServicePluginMaker, libWrap: {typescript: typeof Tsc}): {create(info: Tsl.server.PluginCreateInfo): Tsc.LanguageService} {
 	return {create: info => {
 		let baseService = makeProxyService(info)
 		let partialService = makePlugin({baseService, typescript: libWrap.typescript, pluginInfo: info})
@@ -46,7 +46,7 @@ export function makeTransformerOrPlugin<T>(makers: {
 	makePlugin: ToolboxTransformer.LanguageServicePluginMaker
 }): ToolboxTransformer.LanguageServicePluginCreationFn | ToolboxTransformer.TransformerFactoryCreationFn<T> {
 
-	let result = (inputValue: {typescript: typeof tsl} | Imploder.Context | tsc.Program, params?: T) => {
+	let result = (inputValue: {typescript: typeof Tsl} | Imploder.Context | Tsc.Program, params?: T) => {
 		if("typescript" in inputValue){
 			return doMakeServicePlugin(makers.makePlugin, inputValue)
 		} else {
@@ -58,14 +58,14 @@ export function makeTransformerOrPlugin<T>(makers: {
 	return result as any
 }
 
-function isProgram(x: unknown): x is tsc.Program {
-	return !!x && typeof(x) === "object" && typeof((x as tsc.Program).emit) === "function"
+function isProgram(x: unknown): x is Tsc.Program {
+	return !!x && typeof(x) === "object" && typeof((x as Tsc.Program).emit) === "function"
 }
 
-function makeProxyService(pluginInfo: tsl.server.PluginCreateInfo): tsc.LanguageService {
+function makeProxyService(pluginInfo: Tsl.server.PluginCreateInfo): Tsc.LanguageService {
 	// source: https://github.com/Microsoft/TypeScript/wiki/Writing-a-Language-Service-Plugin
-	const proxy: tsc.LanguageService = Object.create(null)
-	for(let k of Object.keys(pluginInfo.languageService) as (keyof tsc.LanguageService)[]){
+	const proxy: Tsc.LanguageService = Object.create(null)
+	for(let k of Object.keys(pluginInfo.languageService) as (keyof Tsc.LanguageService)[]){
 		// without the line, compiler complain about incorrect `this`
 		// docs are saying all this should be done this way, so let's just cast to any
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any

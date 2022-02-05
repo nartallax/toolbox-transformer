@@ -1,11 +1,9 @@
 import {ToolboxTransformer} from "entrypoint"
 import {SubTransformer, SubTransformerTransformParams} from "main_transformer"
-import {CollectValuesTaskDef, ToolboxTransformerConfig} from "transformer_config"
+import {CollectValuesTaskDef} from "transformer_config"
 import * as Path from "path"
 import * as Tsc from "typescript"
-import {getIdentifiersFromVariableDeclarations, isNodeExported, typeHasMarker} from "tsc_tricks"
 import {getImportStatementsText, getSequenceOrMapExportStatementText, setsEqual} from "utils"
-import {writeGeneratedFile} from "transformer_tricks"
 
 type PathToValueInModule = string[]
 
@@ -14,7 +12,7 @@ interface ModulesOfTask {
 	def: CollectValuesTaskDef
 }
 
-export class CollectValuesTransformer implements SubTransformer {
+export class CollectValuesTransformer extends SubTransformer {
 
 	toString(): string {
 		return "CollectValues"
@@ -22,7 +20,8 @@ export class CollectValuesTransformer implements SubTransformer {
 
 	constructor(
 		tasks: CollectValuesTaskDef[],
-		private readonly toolboxContext: ToolboxTransformer.TransformerProjectContext<ToolboxTransformerConfig>) {
+		toolboxContext: ToolboxTransformer.TransformerProjectContext) {
+		super()
 
 		this.tasks = tasks.map(task => {
 			task.file = Path.resolve(Path.dirname(toolboxContext.tsconfigPath), task.file)
@@ -51,17 +50,17 @@ export class CollectValuesTransformer implements SubTransformer {
 		let exportedValueNames = this.tasks.map(() => [] as PathToValueInModule[])
 
 		let visitor = (node: Tsc.Node, namePath: string[]): Tsc.VisitResult<Tsc.Node> => {
-			if(Tsc.isVariableStatement(node) && isNodeExported(Tsc, node)){
-				let varNames = getIdentifiersFromVariableDeclarations(Tsc, node)
+			if(Tsc.isVariableStatement(node) && this.tricks.isNodeExported(node)){
+				let varNames = this.tricks.getIdentifiersFromVariableDeclarations(node)
 				for(let identifier of varNames){
 					let type = params.typechecker.getTypeAtLocation(identifier)
 					this.tasks.forEach((task, taskIndex) => {
-						if(typeHasMarker(Tsc, params.typechecker, type, task.def.markerName)){
+						if(this.tricks.typeHasMarker(type, task.def.markerName)){
 							exportedValueNames[taskIndex].push([...namePath, identifier.getText()])
 						}
 					})
 				}
-			} else if(Tsc.isModuleDeclaration(node) && node.body && isNodeExported(Tsc, node)){
+			} else if(Tsc.isModuleDeclaration(node) && node.body && this.tricks.isNodeExported(node)){
 				Tsc.visitEachChild(node.body, subnode => visitor(subnode, [...namePath, node.name.text]), params.transformContext)
 			}
 
@@ -97,7 +96,7 @@ export class CollectValuesTransformer implements SubTransformer {
 		let importStr = getImportStatementsText(moduleNames, task.def)
 		let exportStr = getSequenceOrMapExportStatementText(moduleNames, task.def, task.modules)
 
-		writeGeneratedFile(this.toolboxContext, task.def.file, importStr + exportStr)
+		this.tricks.writeGeneratedFile(task.def.file, importStr + exportStr)
 	}
 
 }

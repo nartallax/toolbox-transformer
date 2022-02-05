@@ -2,6 +2,10 @@ import {Imploder} from "@nartallax/imploder"
 import {MainTransformer} from "main_transformer"
 import * as ServiceCreation from "service_creation"
 import {ToolboxTransformerConfig} from "transformer_config"
+import {TscAstTricks} from "tricks/ast_tricks"
+import {TscCheckerTricks} from "tricks/checker_tricks"
+import {ToolboxTransformerTricks} from "tricks/toolbox_transformer_tricks"
+import {TscTransformerTricks} from "tricks/transformer_tricks"
 import * as tsc from "typescript"
 import type * as tsl from "typescript/lib/tsserverlibrary"
 
@@ -21,9 +25,16 @@ export namespace ToolboxTransformer {
 	 * you can just `export = ` result of this function and it will work */
 	export const makeImplodableTransformer: <T>(makeFactory: ToolboxTransformer.TransformerFactoryMaker<T>) => ToolboxTransformer.TransformerFactoryCreationFn<T> = ServiceCreation.makeImplodableTransformer
 
+	/** A classes of trick collections for a lot of different cases
+	 * Use whatever suits you */
+	export const AstTricks = TscAstTricks
+	export const CheckerTricks = TscCheckerTricks
+	export const TransformerTricks = TscTransformerTricks
+	export const ToolboxTricks = ToolboxTransformerTricks
+
 	export type TransformerFactoryMaker<T> = (opts: ToolboxTransformer.TransformerProjectContext<T>) => Imploder.CustomTransformerFactory
 
-	export interface TransformerProjectContext<T> {
+	export interface TransformerProjectContext<T = unknown> {
 		readonly imploder?: Imploder.Context
 		readonly program: tsc.Program
 		readonly params?: T
@@ -75,82 +86,6 @@ export namespace ToolboxTransformer {
 		node?: tsc.Node
 		code?: number
 	}
-
-	export interface ParameterDescription {
-		name: string
-		type: TypeDescription
-		optional?: boolean
-	}
-
-	export type TypeDescription = PlainTypeDescription
-	| CompositeTypeDescription
-	| ConstantTypeDescription
-	| ConstantUnionTypeDescription
-	| ExternalTypeDescription
-	| ArrayTypeDescription
-	| ObjectTypeDescription
-	| TupleTypeDescription
-
-	export interface PlainTypeDescription {
-		type: "string" | "number" | "boolean"
-	}
-
-	export interface CompositeTypeDescription {
-		type: "union" | "intersection"
-		types: TypeDescription[]
-	}
-
-	export interface ConstantTypeDescription {
-		type: "constant"
-		value: unknown // in fact = string | number | boolean | null
-	}
-
-	/** A set of constant values. Value matches type if it equals any of the constant values
-	 * Logically it's the same of several ConstantTypeDescriptions in union
-	 * Introduced to make checks more optimized, and also to reduce generated code size
-	 * That is, it's very easy to produce large constant union types,
-	 * but storing each of them as individual type is just bad */
-	export interface ConstantUnionTypeDescription {
-		type: "constant_union"
-		value: Set<unknown>
-	}
-
-	export interface ExternalTypeDescription {
-		type: "external"
-		name: string
-	}
-
-	export interface ArrayTypeDescription {
-		type: "array"
-		valueType: TypeDescription
-	}
-
-	export type ObjectPropertyTypeDescription = TypeDescription & {optional?: boolean}
-	export interface ObjectTypeDescription {
-		type: "object"
-		properties: Record<string, ObjectPropertyTypeDescription>
-		index?: {
-			// only string index is allowed
-			valueType: TypeDescription
-		}
-	}
-
-	export type TupleElementTypeDescription = (TypeDescription | RestTypeDescription) & {optional?: boolean}
-	export interface TupleTypeDescription {
-		type: "tuple"
-		// keep in mind `rest` parameter
-		// best way to match value to this type descriptions is to approach rest from start,
-		// then from the end, then try to match all values that left to the rest parameter type
-		// I guess that's why typescript allows no more than rest parameter per tuple
-		valueTypes: TupleElementTypeDescription[]
-	}
-
-	// it's just for tuples. not included in general type description type
-	export interface RestTypeDescription {
-		type: "rest"
-		valueType: TypeDescription
-	}
-
 
 }
 

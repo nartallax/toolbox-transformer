@@ -1,17 +1,15 @@
 import {ToolboxTransformer} from "entrypoint"
 import {SubTransformer, SubTransformerTransformParams} from "main_transformer"
-import {CollectToplevelCallsTaskDef, ToolboxTransformerConfig} from "transformer_config"
+import {CollectToplevelCallsTaskDef} from "transformer_config"
 import * as Path from "path"
 import * as Tsc from "typescript"
-import {typeHasMarker} from "tsc_tricks"
-import {writeGeneratedFile} from "transformer_tricks"
 
 interface ModulesOfTask {
 	modules: Set<string>
 	def: CollectToplevelCallsTaskDef
 }
 
-export class CollectToplevelCallsTransformer implements SubTransformer {
+export class CollectToplevelCallsTransformer extends SubTransformer {
 
 	toString(): string {
 		return "CollectToplevelCalls"
@@ -19,7 +17,8 @@ export class CollectToplevelCallsTransformer implements SubTransformer {
 
 	constructor(
 		tasks: CollectToplevelCallsTaskDef[],
-		private readonly toolboxContext: ToolboxTransformer.TransformerProjectContext<ToolboxTransformerConfig>) {
+		toolboxContext: ToolboxTransformer.TransformerProjectContext) {
+		super()
 
 		this.tasks = tasks.map(task => {
 			task.file = Path.resolve(Path.dirname(toolboxContext.tsconfigPath), task.file)
@@ -49,7 +48,7 @@ export class CollectToplevelCallsTransformer implements SubTransformer {
 		let doWithCallExpression = (node: Tsc.CallExpression): void => {
 			let type = params.typechecker.getTypeAtLocation(node)
 			this.tasks.forEach(task => {
-				if(typeHasMarker(Tsc, params.typechecker, type, task.def.returnTypeName) && !task.modules.has(params.moduleName)){
+				if(this.tricks.typeHasMarker(type, task.def.returnTypeName) && !task.modules.has(params.moduleName)){
 					task.modules.add(params.moduleName)
 					changedTasks.add(task)
 				}
@@ -82,7 +81,7 @@ export class CollectToplevelCallsTransformer implements SubTransformer {
 			.map(module => "import \"" + module + "\";")
 			.join("\n")
 
-		writeGeneratedFile(this.toolboxContext, task.def.file, fileContent)
+		this.tricks.writeGeneratedFile(task.def.file, fileContent)
 	}
 
 }

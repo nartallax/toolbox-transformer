@@ -13,6 +13,7 @@ module.exports = {
     "node_modules",
     "**/node_modules/**",
     "**/generated/**",
+    "**/target/**",
     "build",
     ".eslintrc.js",
     "test_project"

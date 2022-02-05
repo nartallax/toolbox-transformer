@@ -1,11 +1,10 @@
 import {ToolboxTransformer} from "entrypoint"
 import {SubTransformer, SubTransformerTransformParams} from "main_transformer"
-import {CollectTypeofTypeMapTaskDef, ToolboxTransformerConfig} from "transformer_config"
+import {CollectTypeofTypeMapTaskDef} from "transformer_config"
 import * as Path from "path"
 import * as Tsc from "typescript"
-import {entityNameToArray, isNodeExported, typeHasMarker} from "tsc_tricks"
 import {getImportStatementsText, setsEqual} from "utils"
-import {NodeReference, getVariableReferenceByName, writeGeneratedFile} from "transformer_tricks"
+import {NodeReference} from "tricks/toolbox_transformer_tricks"
 
 interface TargetType {
 	pathToType: string[]
@@ -17,7 +16,7 @@ interface ModulesOfTask {
 	def: CollectTypeofTypeMapTaskDef
 }
 
-export class TypeofTypeMapTransformer implements SubTransformer {
+export class TypeofTypeMapTransformer extends SubTransformer {
 
 	toString(): string {
 		return "TypeofTypeMap"
@@ -25,7 +24,8 @@ export class TypeofTypeMapTransformer implements SubTransformer {
 
 	constructor(
 		tasks: CollectTypeofTypeMapTaskDef[],
-		private readonly toolboxContext: ToolboxTransformer.TransformerProjectContext<ToolboxTransformerConfig>) {
+		toolboxContext: ToolboxTransformer.TransformerProjectContext) {
+		super()
 
 		this.tasks = tasks.map(task => {
 			task.file = Path.resolve(Path.dirname(toolboxContext.tsconfigPath), task.file)
@@ -65,7 +65,7 @@ export class TypeofTypeMapTransformer implements SubTransformer {
 					return
 				}
 
-				if(!typeHasMarker(Tsc, params.typechecker, typeOfType, task.def.markerName)){
+				if(!this.tricks.typeHasMarker(typeOfType, task.def.markerName)){
 					return
 				}
 
@@ -74,9 +74,9 @@ export class TypeofTypeMapTransformer implements SubTransformer {
 				}
 
 				let fullPathToType = [...namePath, node.name.getText()]
-				let valueRef = getVariableReferenceByName(params, firstTypeArg.exprName)
+				let valueRef = this.tricks.getVariableReferenceByName(firstTypeArg.exprName)
 				if(!valueRef){
-					throw new Error("Cannot refer to value " + entityNameToArray(Tsc, firstTypeArg.exprName).join(".") + " mentioned in module " + params.moduleName + " as " + fullPathToType.join(".") + ". Maybe the value is not exported?")
+					throw new Error("Cannot refer to value " + this.tricks.entityNameToArray(firstTypeArg.exprName).join(".") + " mentioned in module " + params.moduleName + " as " + fullPathToType.join(".") + ". Maybe the value is not exported?")
 				}
 				exportedValueNames[taskIndex].push({
 					pathToType: fullPathToType,
@@ -86,7 +86,7 @@ export class TypeofTypeMapTransformer implements SubTransformer {
 		}
 
 		let visitor = (node: Tsc.Node, namePath: string[], exported: boolean): Tsc.VisitResult<Tsc.Node> => {
-			exported = exported && isNodeExported(Tsc, node)
+			exported = exported && this.tricks.isNodeExported(node)
 
 			if(Tsc.isTypeAliasDeclaration(node)){
 				tryProcessType(node, node.type, namePath, exported)
@@ -205,7 +205,7 @@ export class TypeofTypeMapTransformer implements SubTransformer {
 
 		let exportStr = `export const ${task.def.exportedName}: ${exportTypeStr} = ${exportValueStr};`
 
-		writeGeneratedFile(this.toolboxContext, task.def.file, importStr + exportStr)
+		this.tricks.writeGeneratedFile(task.def.file, importStr + exportStr)
 	}
 
 }
