@@ -117,10 +117,10 @@ export class ToolboxTransformerTricks extends TscTransformerTricks {
 	}
 
 	/** Having some node, get full path to the node */
-	getReferenceToDeclaration(decl: Tsc.InterfaceDeclaration | Tsc.TypeAliasDeclaration | Tsc.ClassDeclaration): {ref: NodeReference, exported: boolean} {
+	getReferenceToDeclaration(decl: Tsc.InterfaceDeclaration | Tsc.TypeAliasDeclaration | Tsc.ClassDeclaration | Tsc.VariableDeclaration): {ref: NodeReference, exported: boolean} {
 		let path = [] as string[]
 		let exported = this.isNodeExported(decl)
-		if(decl.name){
+		if(decl.name && this.tsc.isIdentifier(decl.name)){
 			path.push(decl.name.getText())
 		}
 
