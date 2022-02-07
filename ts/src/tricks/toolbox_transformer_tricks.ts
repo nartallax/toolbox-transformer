@@ -116,12 +116,16 @@ export class ToolboxTransformerTricks extends TscTransformerTricks {
 		}
 	}
 
-	/** Having some node, get full path to the node */
-	getReferenceToDeclaration(decl: Tsc.InterfaceDeclaration | Tsc.TypeAliasDeclaration | Tsc.ClassDeclaration | Tsc.VariableDeclaration): {ref: NodeReference, exported: boolean} {
+	/** Having some node, get full path to the node
+	 * Idenitfiers are only supported if they are part of some declaration (i.e. variable declaration)
+	 */
+	getReferenceToDeclaration(decl: Tsc.InterfaceDeclaration | Tsc.TypeAliasDeclaration | Tsc.ClassDeclaration | Tsc.Identifier): {ref: NodeReference, exported: boolean} {
 		let path = [] as string[]
 		let exported = this.isNodeExported(decl)
-		if(decl.name && this.tsc.isIdentifier(decl.name)){
-			path.push(decl.name.getText())
+		if("name" in decl && decl.name){
+			path.push(decl.name.text)
+		} else if(this.tsc.isIdentifier(decl)){
+			path.push(decl.text)
 		}
 
 		let node: Tsc.Node = decl
@@ -131,16 +135,17 @@ export class ToolboxTransformerTricks extends TscTransformerTricks {
 			} else if(this.tsc.isVariableStatement(node)){
 				exported = exported && this.isNodeExported(node)
 			} else if(this.tsc.isVariableDeclaration(node)){
-				exported = exported && this.isNodeExported(node)
 				// if declaration of class is put inside variable
 				// the exported name will be not the name of class, but the name of the variable
-				if(path.length > 0){
-					path.pop()
+				if(this.tsc.isIdentifier(node.name)){
+					if(path.length > 0){
+						path.pop()
+					}
+					path.push(node.name.text)
 				}
-				path.push(node.name.getText())
 			} else if(this.tsc.isModuleDeclaration(node)){ // namespaces
 				exported = exported && this.isNodeExported(node)
-				path.push(node.name.getText())
+				path.push(node.name.text)
 			}
 			node = node.parent
 		}

@@ -1,6 +1,6 @@
 {
   "name": "@nartallax/toolbox-transformer",
-  "version": "1.0.10",
+  "version": "1.0.12",
   "description": "A Typescript transformer that is able to do many things.",
   "main": "toolbox-transformer.js",
   "types": "toolbox-transformer.d.ts",
