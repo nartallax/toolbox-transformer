@@ -86,9 +86,20 @@ export class TscAstTricks {
 				}
 
 				return this.tsc.factory.createObjectLiteralExpression(
-					(Object.keys(value) as (keyof(typeof value))[]).map(propName => {
-						let propValue = value[propName]
-						return this.tsc.factory.createPropertyAssignment(propName, this.createLiteralOfValue(propValue))
+					(Object.keys(value) as (string)[]).map(propName => {
+						let propValue = value[propName as keyof typeof value]
+
+						let nameNode: Tsc.PropertyName
+						if(propName.match(/^[a-zA-Z_\d]+$/)){
+							nameNode = this.tsc.factory.createIdentifier(propName)
+						} else {
+							nameNode = this.tsc.factory.createStringLiteral(propName)
+						}
+
+						return this.tsc.factory.createPropertyAssignment(
+							nameNode,
+							this.createLiteralOfValue(propValue)
+						)
 					})
 				)
 			}
