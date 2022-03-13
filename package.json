@@ -1,6 +1,6 @@
 {
   "name": "@nartallax/toolbox-transformer",
-  "version": "1.0.18",
+  "version": "1.0.19",
   "description": "A Typescript transformer that is able to do many things.",
   "main": "toolbox-transformer.js",
   "types": "toolbox-transformer.d.ts",
@@ -20,7 +20,7 @@
   "devDependencies": {
     "@nartallax/clamsensor": "^1.1.4",
     "@nartallax/imploder": "^1.1.29",
-    "@types/node": "^16.11.7",
+    "@types/node": "^17.0.21",
     "@typescript-eslint/eslint-plugin": "^4.30.0",
     "@typescript-eslint/parser": "^4.30.0",
     "dts-bundle-generator": "^5.9.0",
